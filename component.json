@@ -1,0 +1,5 @@
+{
+    "name": "app",
+    "paths": ["lib"],
+    "locals": ["map-component"]
+}

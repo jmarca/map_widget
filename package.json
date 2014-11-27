@@ -1,0 +1,27 @@
+{
+  "name": "map_widget",
+  "version": "1.0.0",
+  "description": "map widget, server test setup",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmarca/map_widget"
+  },
+  "keywords": [
+    "map",
+    "d3"
+  ],
+  "author": "James E. Marca",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jmarca/map_widget/issues"
+  },
+  "homepage": "https://github.com/jmarca/map_widget",
+  "devDependencies": {
+    "express": "^4.10.4",
+    "serve-static": "^1.7.1"
+  }
+}

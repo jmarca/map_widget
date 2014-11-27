@@ -1,0 +1,10 @@
+{
+    "main": "js/index.js",
+    "scripts": [
+        "js/index.js"
+    ],
+    "styles": ["css/index.css"],
+    "dependencies": {
+        "mbostock/d3": "^3.4.13"
+    }
+}
