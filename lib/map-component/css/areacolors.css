@@ -81,24 +81,19 @@ fill: rgb(  25, 101, 128);}
   stroke-opacity: 0;
  fill: rgb( 229, 255, 128);}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.odd_odd{
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  76, 165, 255);}
+.odd_even{
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 101, 191, 255);}
+.even_odd {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(127, 212, 255);}
+.even_even {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(153, 229, 255);}
