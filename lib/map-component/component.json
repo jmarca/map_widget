@@ -3,7 +3,7 @@
     "scripts": [
         "js/index.js"
     ],
-    "styles": ["css/index.css"],
+    "styles": ["css/index.css","css/areacolors.css"],
     "dependencies": {
         "mbostock/d3": "^3.4.13"
     }

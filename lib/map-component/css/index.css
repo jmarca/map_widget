@@ -49,6 +49,7 @@ path {
 .highway { stroke: #f39; stroke-width: 1.5px; }
 .rail { stroke: #7de; }
 .buildings path { stroke: none; fill: black; }
+.counties path { stroke: none; }
 
 .overlay {
   fill: none;
