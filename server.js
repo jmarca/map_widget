@@ -57,10 +57,10 @@ var all_hpms_handler = function(config,app){
                     console.log("all done!");
                     // spit out results stitched together
                     results = _.flatten(results)
-                    results = _.filter(results,function(r){
-                              return r.f_system=='totals'
-                              })
-                    res.json(_.flatten(results))
+                    // results = _.filter(results,function(r){
+                    //           return r.f_system=='totals'
+                    //           })
+                    res.json(results)
                     return null
                 })
                 return null
