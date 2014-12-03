@@ -3,6 +3,9 @@
     "scripts": [
         "js/index.js"
     ],
+    "json":[
+        "js/hpms2009.json"
+    ],
     "styles": ["css/index.css","css/areacolors.css"],
     "dependencies": {
         "mbostock/d3": "^3.4.13"
