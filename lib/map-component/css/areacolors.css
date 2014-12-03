@@ -97,3 +97,5 @@ fill: rgb(  25, 101, 128);}
  opacity: 0.6;
   stroke-opacity: 0;
  fill: rgb(153, 229, 255);}
+
+.tile .hpmslink { stroke: #77A; opacity:0.8}
