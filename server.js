@@ -10,8 +10,12 @@ var pport = process.env.PSQL_PORT || 5432;
 var config_okay = require('config_okay')
 var path = require('path')
 var rootdir = path.normalize(__dirname)
-var config_file = rootdir+'/test.config.json'
+var config_file = rootdir+'/config.json'
 
+var hpmsfiles = [rootdir+'/public/hpms2007.json',
+                 rootdir+'/public/hpms2008.json',
+                 rootdir+'/public/hpms2009.json'
+                ]
 
 var serveStatic = require('serve-static')
 
@@ -28,9 +32,16 @@ var queries = require('calvad_grid_merge_sqlquery')
 var hpms_data_route = queries.hpms_data_route
 var hpms_data_nodetectors_route = queries.hpms_data_nodetectors_route
 
+var hourlies = require('calvad_grid_merge_couchdbquery')
+var get_hpms_fractions = hourlies.get_hpms_fractions
+var post_process_couch_query = hourlies.post_process_couch_query
+var get_detector_fractions = hourlies.get_detector_fractions
+var fs = require('fs')
 
 // for forEach on objects. also for flatten
 var _ = require('lodash')
+
+var hourly_handler = require('calvad_grid_merge_applyfractions').grid_hpms_hourly_handler
 
 var all_hpms_handler = function(config,app){
     var ij_regex = /(\d*)_(\d*)/;
@@ -77,11 +88,19 @@ config_okay(config_file,function(err,c){
     var app = express()
     app.use(serveStatic('public'))
     app.use(serveStatic('build'))
-    carb_areas(config,app)
-    hpms_routes(config,app)
-    hpms_data_route(config,app)
-    hpms_data_nodetectors_route(config,app)
-    all_hpms_handler(config,app)
-    app.listen(3000)
+    queue()
+    .defer(hourly_handler,config,hpmsfiles,app)
+    .await(function(e){
+        if(e) throw new Error(e)
+        carb_areas(config,app)
+        hpms_routes(config,app)
+        hpms_data_route(config,app)
+        hpms_data_nodetectors_route(config,app)
+        all_hpms_handler(config,app)
+        app.listen(3000,function(){
+            console.log('huh')
+        })
+        return null
+    })
 
 })

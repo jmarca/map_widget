@@ -24,6 +24,7 @@
     "express": "^4.10.4",
     "serve-static": "^1.7.1",
     "calvad_grid_merge_sqlquery": "git://github.com/jmarca/calvad_grid_merge_sqlquery",
+    "calvad_grid_merge_couchdbquery": "git://github.com/jmarca/calvad_grid_merge_couchdbquery",
     "spatial_routes": "git://github.com/jmarca/spatial_routes.git",
     "calvad_areas": "git://github.com/jmarca/calvad_areas.git",
     "hpms_locator": "git://github.com/jmarca/hpms_locator.git"
