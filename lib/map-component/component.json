@@ -4,7 +4,9 @@
         "js/index.js"
     ],
     "json":[
-        "js/hpms2009.json"
+        "js/hpms2009.json",
+        "js/topology4326.json",
+        "js/grids.json"
     ],
     "styles": ["css/index.css","css/areacolors.css"],
     "dependencies": {

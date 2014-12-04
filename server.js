@@ -92,13 +92,13 @@ config_okay(config_file,function(err,c){
     .defer(hourly_handler,config,hpmsfiles,app)
     .await(function(e){
         if(e) throw new Error(e)
-        carb_areas(config,app)
-        hpms_routes(config,app)
+        carb_areas(config.postgres,app)
+        hpms_routes(config.postgres,app)
         hpms_data_route(config,app)
         hpms_data_nodetectors_route(config,app)
         all_hpms_handler(config,app)
         app.listen(3000,function(){
-            console.log('huh')
+            console.log('hup!')
         })
         return null
     })

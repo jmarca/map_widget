@@ -99,3 +99,10 @@ fill: rgb(  25, 101, 128);}
  fill: rgb(153, 229, 255);}
 
 .tile .hpmslink { stroke: #77A; opacity:0.8}
+
+.grid-boundaries path{
+  fill: none;
+  stroke: #000;
+  stroke-opacity: 0.4;
+
+}
