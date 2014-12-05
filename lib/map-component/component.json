@@ -3,7 +3,12 @@
     "scripts": [
         "js/index.js"
     ],
-    "styles": ["css/index.css"],
+    "json":[
+        "js/hpms2009.json",
+        "js/topology4326.json",
+        "js/grids.json"
+    ],
+    "styles": ["css/index.css","css/areacolors.css"],
     "dependencies": {
         "mbostock/d3": "^3.4.13"
     }

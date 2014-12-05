@@ -1,0 +1,108 @@
+.disAMA ,.disFR  ,.disMOD ,.disVEN ,.abNEP,.abSCC,.fips06021, .fips06039, .fips06049, .fips06083, .fips06109, .fips06113 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+fill: rgb(   0,  63, 255);}
+.disCAL ,.disCOL ,.disSC  ,.disSIS ,.abMD, .abSV, .fips06013, .fips06055, .fips06071, .fips06087, .fips06091, .fips06093 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+fill: rgb(  25, 101, 255);}
+.disAV  ,.disLAK ,.disSHA ,.disSJU ,.abNC, .abSC, .fips06019, .fips06041, .fips06045, .fips06067, .fips06089, .fips06111 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  50, 136, 255);}
+.disLAS ,.disPLA ,.disSD  ,.disTUO ,.abMC, .abSS, .fips06003, .fips06035, .fips06037, .fips06069, .fips06099, .fips06115 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  76, 165, 255);}
+.disED  ,.disIMP ,.disMPA ,.disNCU ,.abLC, .abSD, .fips06001, .fips06053, .fips06057, .fips06059, .fips06097, .fips06105 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 101, 191, 255);}
+.disMBU ,.disNSI ,.disYS  , .abLT, .fips06011, .fips06015, .fips06027, .fips06065, .fips06075, .fips06095 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(127, 212, 255);}
+.disBA  ,.disSLO ,.disTEH , .abSF, .fips06005, .fips06033, .fips06043, .fips06063, .fips06073, .fips06107 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(153, 229, 255);}
+.disBUT ,.disKER ,.disSAC , .abGBV,.fips06009, .fips06025, .fips06031, .fips06081, .fips06101, .fips06103 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(178, 242, 255);}
+.disGBU ,.disGLE ,.disSB  , .abSJV,.fips06023, .fips06047, .fips06051, .fips06061, .fips06079 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 204, 250, 255);}
+.disMEN ,.disMOJ ,.disNS  , .abNCC,.fips06007, .fips06017, .fips06029, .fips06077, .fips06085 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 229, 255, 255);}
+
+
+.active.disAMA ,.active.disFR  ,.active.disMOD ,.active.disVEN ,.active.abNEP,.active.abSCC,.active.fips06021, .active.fips06039, .active.fips06049, .active.fips06083, .active.fips06109, .active.fips06113 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+fill: rgb(   0,  63, 128);}
+.active.disCAL ,.active.disCOL ,.active.disSC  ,.active.disSIS ,.active.abMD, .active.abSV, .active.fips06013, .active.fips06055, .active.fips06071, .active.fips06087, .active.fips06091, .active.fips06093 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+fill: rgb(  25, 101, 128);}
+.active.disAV  ,.active.disLAK ,.active.disSHA ,.active.disSJU ,.active.abNC, .active.abSC, .active.fips06019, .active.fips06041, .active.fips06045, .active.fips06067, .active.fips06089, .active.fips06111 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  50, 136, 128);}
+.active.disLAS ,.active.disPLA ,.active.disSD  ,.active.disTUO ,.active.abMC, .active.abSS, .active.fips06003, .active.fips06035, .active.fips06037, .active.fips06069, .active.fips06099, .active.fips06115 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  76, 165, 128);}
+.active.disED  ,.active.disIMP ,.active.disMPA ,.active.disNCU ,.active.abLC, .active.abSD, .active.fips06001, .active.fips06053, .active.fips06057, .active.fips06059, .active.fips06097, .active.fips06105 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 101, 191, 128);}
+.active.disMBU ,.active.disNSI ,.active.disYS  , .active.abLT, .active.fips06011, .active.fips06015, .active.fips06027, .active.fips06065, .active.fips06075, .active.fips06095 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(127, 212, 128);}
+.active.disBA  ,.active.disSLO ,.active.disTEH , .active.abSF, .active.fips06005, .active.fips06033, .active.fips06043, .active.fips06063, .active.fips06073, .active.fips06107 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(153, 229, 128);}
+.active.disBUT ,.active.disKER ,.active.disSAC , .active.abGBV,.active.fips06009, .active.fips06025, .active.fips06031, .active.fips06081, .active.fips06101, .active.fips06103 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(178, 242, 128);}
+.active.disGBU ,.active.disGLE ,.active.disSB  , .active.abSJV,.active.fips06023, .active.fips06047, .active.fips06051, .active.fips06061, .active.fips06079 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 204, 250, 128);}
+.active.disMEN ,.active.disMOJ ,.active.disNS  , .active.abNCC,.active.fips06007, .active.fips06017, .active.fips06029, .active.fips06077, .active.fips06085 {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 229, 255, 128);}
+
+.odd_odd{
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(  76, 165, 255);}
+.odd_even{
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb( 101, 191, 255);}
+.even_odd {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(127, 212, 255);}
+.even_even {
+ opacity: 0.6;
+  stroke-opacity: 0;
+ fill: rgb(153, 229, 255);}
+
+.tile .hpmslink { stroke: #77A; opacity:0.8}
+
+.grid-boundaries path{
+  fill: none;
+  stroke: #000;
+  stroke-opacity: 0.4;
+
+}
