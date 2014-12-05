@@ -1,15 +1,24 @@
 {
     "main": "js/index.js",
     "scripts": [
-        "js/index.js"
+        "js/index.js",
+        "js/data.js",
+        "js/barchart.js",
+        "js/xychart.js",
+        "js/checkbox.js"
     ],
     "json":[
         "js/hpms2009.json",
         "js/topology4326.json",
         "js/grids.json"
     ],
-    "styles": ["css/index.css","css/areacolors.css"],
+    "styles": ["css/index.css",
+               "css/areacolors.css",
+               "css/area_plot.css"],
     "dependencies": {
+        "jmarca/queue": "^1.0.9",
+        "square/crossfilter": "^1.3.11",
+        "component/debounce": "*",
         "mbostock/d3": "^3.4.13"
     }
 }

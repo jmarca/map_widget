@@ -100,9 +100,17 @@ fill: rgb(  25, 101, 128);}
 
 .tile .hpmslink { stroke: #77A; opacity:0.8}
 
-.grid-boundaries path{
-  fill: none;
+.grid-boundaries path,
+.plot-tiles path{
+    fill: #fbb;
+    opacity:0.3;
   stroke: #000;
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.7;
+  stroke-width:5px;
 
+}
+
+.hpmsdata {
+    stroke-opacity:0;
+    opacity:0.4
 }
