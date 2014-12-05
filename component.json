@@ -1,5 +1,8 @@
 {
     "name": "app",
     "paths": ["lib"],
-    "locals": ["map-component"]
+
+    "locals": [
+               "grid-plotter"
+              ]
 }
