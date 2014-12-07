@@ -2,6 +2,6 @@
     "name": "app",
     "paths": ["lib"],
     "locals": [
-        "map-component"
+        "grid-plotter"
               ]
 }
