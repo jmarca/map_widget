@@ -30,8 +30,8 @@
     "hpms_locator": "git://github.com/jmarca/hpms_locator.git"
   },
   "dependencies": {
-    "config_okay": "0.0.2",
-    "lodash": "^2.4.1",
-    "queue-async": "^1.0.7"
+    "config_okay": "",
+    "lodash": "",
+    "queue-async": ""
   }
 }
