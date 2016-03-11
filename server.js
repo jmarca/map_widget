@@ -71,17 +71,25 @@ var all_hpms_handler = function(config,app){
 
 config_okay(config_file,function(err,c){
 
-    var config ={'postgres':c.postgres
+    var config ={'postgresql':c.postgresql
                 ,'couchdb':c.couchdb}
 
     var app = express()
     app.use(serveStatic('public'))
     app.use(serveStatic('build'))
-    carb_areas(config,app)
-    hpms_routes(config,app)
-    hpms_data_route(config,app)
-    hpms_data_nodetectors_route(config,app)
-    all_hpms_handler(config,app)
-    app.listen(3000)
+    queue()
+    .defer(hourly_handler,config,hpmsfiles,app)
+    .await(function(e){
+        if(e) throw new Error(e)
+        carb_areas(config.postgresql,app)
+        hpms_routes(config.postgresql,app)
+        hpms_data_route(config,app)
+        hpms_data_nodetectors_route(config,app)
+        all_hpms_handler(config,app)
+        app.listen(3000,function(){
+            console.log('hup!')
+        })
+        return null
+    })
 
 })
