@@ -82,7 +82,7 @@ var all_hpms_handler = function(config,app){
 
 config_okay(config_file,function(err,c){
 
-    var config ={'postgres':c.postgres
+    var config ={'postgresql':c.postgresql
                 ,'couchdb':c.couchdb}
 
     var app = express()
@@ -92,8 +92,8 @@ config_okay(config_file,function(err,c){
     .defer(hourly_handler,config,hpmsfiles,app)
     .await(function(e){
         if(e) throw new Error(e)
-        carb_areas(config.postgres,app)
-        hpms_routes(config.postgres,app)
+        carb_areas(config.postgresql,app)
+        hpms_routes(config.postgresql,app)
         hpms_data_route(config,app)
         hpms_data_nodetectors_route(config,app)
         all_hpms_handler(config,app)
