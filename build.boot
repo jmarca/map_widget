@@ -22,10 +22,15 @@
                  [org.clojars.magomimmo/valip "0.4.0-SNAPSHOT"]
                  [enlive "1.1.6"]
                  ;; clojurescript stuff
+                 ;; using re-frame and reagent
+                 [re-frame "0.8.0"]
+                 [reagent "0.6.0-rc"]
+                 ;; leftovers from modern-clojurescript tutorial
                  [org.clojars.magomimmo/domina "2.0.0-SNAPSHOT"]
                  [hiccups "0.3.0"]
-                 [reagent "0.6.0-rc"]
                  [cljsjs/remarkable "1.6.2-0"]
+                 ;;[cljsjs/leaflet "0.7.7-4"] ;; not sure I want this
+                 [cljsjs/d3 "4.2.0-0"]
                  ])
 
 (require '[adzerk.boot-cljs :refer [cljs]]
