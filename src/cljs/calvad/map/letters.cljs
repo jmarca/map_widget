@@ -45,19 +45,20 @@
   :update
   (fn
     [db [_ idx param val]]
-    (println "idx " idx "param " param "val " val)
+    ;;(println "idx " idx "param " param "val " val)
     (assoc-in db [:circles idx param ] val)))
 
 (register-handler
   :shuffle
   (fn
     [db [_ ]]
-    (println "shuffle and cut")
+    ;;(println "shuffle and cut")
     (let [lettres (random-sample
                    0.5
                    (str/split "abcdefghijklmnopqrstuvwxyz" #"")
                    )]
-      (assoc-in db [:alphabet] val)))
+      ;;(println lettres)
+      (assoc-in db [:alphabet] lettres)))
   )
 
 
@@ -106,33 +107,46 @@
 
 ;; letters using d3 controllers
 (defn d3-inner-letters [data]
-  (let [updater (fn [this]
-                           (let [[_ data] (reagent/argv this)
-                                 d3data (clj->js data)]
-                             (println d3data)
-                             (def text (.. js/d3
-                                          (select "g")
-                                          (selectAll "text")
-                                          (data d3data)))
-                            (.attr text "class" "update")
-                            (.. text
-                                enter
-                                (append "text")
-                                (attr "class" "enter")
-                                (attr "x" (fn [d i] (* i 15) ))
-                                (attr "dy" ".35em")
-                                (merge text)
-                                (text (fn [d] d))
-                                )))]
+
     (reagent/create-class
      {:reagent-render (fn [] [:div
                               [:svg {:width 500 :height 80}
                                [:g {:transform  "translate(15,40)"}]]])
 
-      :component-did-update updater
+      :component-did-update (fn [this]
+                             (let [[_ data] (reagent/argv this)
+                                   d3data (clj->js data)]
+                               (def texta (.. js/d3
+                                              (select "g")
+                                              (selectAll "text")
+                                              (data d3data)))
+                               (.attr texta "class" "update")
+                               (.. texta
+                                   enter
+                                   (append "text")
+                                   (attr "class" "enter")
+                                   (attr "x" (fn [d i] (* i 15) ))
+                                   (attr "dy" ".35em")
+                                   (merge texta)
+                                   (text (fn [d] d))
+                                   )
+                               (.. texta exit (remove))))
 
-   :component-did-mount updater
-                            })))
+      :component-did-mount (fn []
+                             (let [d3data (clj->js data)]
+                               (.. js/d3
+                                   (select "g")
+                                   (selectAll "text")
+                                   (data d3data)
+                                   (attr "class" "update")
+                                   enter
+                                   (append "text")
+                                   (attr "class" "enter")
+                                   (attr "x" (fn [d i] (* i 15) ))
+                                   (attr "dy" ".35em")
+                                   (text (fn [d] d))
+                                   )
+                            ))}))
 
 ;; the slider widgets for user actions
 (defn slider [param idx value]

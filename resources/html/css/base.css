@@ -18,3 +18,14 @@ div.container div.row {
     max-width:551px;
     min-width:400px;
 }
+
+
+.enter {
+    font: bold 20px monospace;
+    fill: green;
+}
+
+.update {
+    font: bold 20px monospace;
+    fill: red;
+}

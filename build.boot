@@ -25,6 +25,7 @@
                  ;; using re-frame and reagent
                  [re-frame "0.8.0"]
                  [reagent "0.6.0-rc"]
+                 [re-com "0.8.3"]
                  ;; leftovers from modern-clojurescript tutorial
                  [org.clojars.magomimmo/domina "2.0.0-SNAPSHOT"]
                  [hiccups "0.3.0"]
