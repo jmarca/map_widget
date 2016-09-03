@@ -27,7 +27,7 @@
                       :color "red"}
                      {:name "circle 3"
                       :x 100
-                      :y 100
+                      :y 500
                       :r 30
                       :color "blue"}]
                 :alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #"")})
@@ -84,8 +84,7 @@
      :component-did-mount (fn []
                             (let [d3data (clj->js data)]
                               (.. js/d3
-                                  (select ".widget-cicles")
-                                  (append "svg")
+                                  (select "svg")
                                   (selectAll "circle")
                                   (data d3data)
                                   enter
@@ -107,30 +106,12 @@
 
 ;; letters using d3 controllers
 (defn d3-inner-letters [data]
- (reagent/create-class
-  {:reagent-render (fn [] [:div
-                           [:svg {:width 500 :height 80}
-                            [:g {:transform
-                                 (str/join (str/join "translate(32," (/ 80 2)) ")")}]]])
-
-   :component-did-mount (fn []
-                          (let [d3data (clj->js data)]
-                            (.. js/d3
-                                (select "svg")
-                                (selectAll "text")
-                                (data d3data)
-                                enter
-                                (append "text")
-                                (attr "class" "enter")
-                                (attr "x" (fn [d i] (* i 32) ))
-                                (attr "dy" ".35em")
-                                (attr "fill" (fn [d] (.-color d))))))
-
-   :component-did-update (fn [this]
+  (let [updater (fn [this]
                            (let [[_ data] (reagent/argv this)
-                                   d3data (clj->js data)]
+                                 d3data (clj->js data)]
+                             (println d3data)
                              (def text (.. js/d3
-                                          (select "svg")
+                                          (select "g")
                                           (selectAll "text")
                                           (data d3data)))
                             (.attr text "class" "update")
@@ -138,12 +119,20 @@
                                 enter
                                 (append "text")
                                 (attr "class" "enter")
-                                (attr "x" (fn [d i] (* i 32) ))
+                                (attr "x" (fn [d i] (* i 15) ))
                                 (attr "dy" ".35em")
                                 (merge text)
-                                (attr "fill" (fn [d] (.-color d))))))
+                                (text (fn [d] d))
+                                )))]
+    (reagent/create-class
+     {:reagent-render (fn [] [:div
+                              [:svg {:width 500 :height 80}
+                               [:g {:transform  "translate(15,40)"}]]])
 
-                            }))
+      :component-did-update updater
+
+   :component-did-mount updater
+                            })))
 
 ;; the slider widgets for user actions
 (defn slider [param idx value]
@@ -156,7 +145,7 @@
 
 (defn clickr [param idx value]
   [:input {:type "button"
-           :on-change #(dispatch [:shuffle])}])
+           :on-click #(dispatch [:shuffle])}])
 
 
 (defn sliders [data]
@@ -175,13 +164,15 @@
     (fn []
       [:div {:class "container"}
        [:div {:class "row"}
-        [:div {:class "col widget-circles"}
-          [d3-inner @data]]
-        [:div {:class "col controller-circles "}
+        [:div {:class "col firstapp"}
+         [d3-inner @data]]
+        [:div {:class "col firstcontrol"}
          [sliders @data]]]
        [:div {:class "row"}
-        [:div {:class "col widget-alphabet"}
-         ]
+        [:div {:class "col secondapp"}
+         [d3-inner-letters @datal]]
+        [:div {:class "col secondcontrol"}
+         [clickr]]
          ]
         ]
       )))
@@ -196,3 +187,71 @@
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
 )
+
+
+
+     ;; (defn update-letters
+;;   "update the d3 thing, in this case letters"
+;;   [dom-node data ...]
+;;   ;; draw here.  not super sure how to
+;;   (.. js/d3
+;;       (let [g (select dom-node)
+;;             ]
+;;         (. g (selectAll "text"))))
+;;   )
+
+
+;; (defn build-letters-svg
+;;   "build the letters node to manipulate"
+;;   [dom-node]
+;;   (.. js/d3
+;;       (let [svg (select dom-node)
+;;             width (. svg attr "width")
+;;             height (. svg attr "height")
+;;             ]
+;;         (append "g")
+;;         (. g attr "transform" (str/join
+;;                                "translate(32,"
+;;                                (/ height 2)
+;;                                ")"
+;;                                ))
+;;         )))
+
+
+;; (defn d3-gauge [data ...]
+;;   (let [dom-node (r/atom nil)]
+;;     (r/create-class
+;;       {:component-did-update
+;;        (fn [this old-argv]
+;;          (let [[_ data ...] (r/argv this)]
+;;            ;; This is where we get to actually draw the D3 gauge.
+;;            (update-letters @dom-node data ...)))
+
+;;        :component-did-mount
+;;        (fn [this]
+;;          (let [node (r/dom-node this)]
+;;            ;; This will trigger a re-render of the component.
+
+;;            (build-letters-svg node )
+;;            d3Chart.create(el, {
+;;                                width: '100%',
+;;                                height: '300px'
+;;                                }, this.getChartState());
+;;            },
+
+;;            (reset! dom-node node)))
+
+;;        :reagent-render
+;;        (fn [data ...]
+;;          ;; Necessary for Reagent to see that we depend on the dom-node r/atom.
+;;          ;; Note: we don't actually use any of the args here.  This is because
+;;          ;; we cannot render D3 at this point.  We have to wait for the update.
+;;          @dom-node
+;;          [:div.app [:svg]])})))
+
+
+;; (defn ^:export main [json-file]
+;;   (let [width 960
+;;         height 600
+;;         letters-thing (build-force-layout width height)
+;;         svg (build-svg width height)]
