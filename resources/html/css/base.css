@@ -42,6 +42,9 @@ div.container div.row {
 
 .grid-border {
   fill: none;
-  stroke: #777;
+  stroke: none;
   pointer-events: none;
+}
+.grid-border:hover {
+    stroke: #777;
 }

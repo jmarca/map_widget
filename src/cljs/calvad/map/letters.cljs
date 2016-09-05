@@ -31,7 +31,8 @@
                       :y 500
                       :r 30
                       :color "blue"}]
-                :alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #"")})
+                :alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #"")
+                :active ""})
 
 
 ;; define your app data so that it doesn't get over-written on reload
@@ -76,6 +77,12 @@
   (fn
     [db _]
     (reaction (:alphabet @db))))
+
+(register-sub
+  :active
+  (fn
+    [db _]
+    (reaction (:active @db))))
 
 
 ;; circles using d3 controllers
@@ -173,10 +180,16 @@
              "r " (:r d) (slider :r idx (:r d))])])
 
 
+;; ;; letters using d3 controllers
+;; (defn my-component []
+;;   (let [necessary-state (r/cursor global-state ["foo" "bar"])]
+;;     [d3-gauge @necessary-state]))
+
 
 (defn app [gridtopo]
     (let [data (subscribe [:circles])
-          datal (subscribe [:alphabet])]
+          datal (subscribe [:alphabet])
+          active (subscribe [:active])]
       (fn []
         [:div {:class "container"}
          [:div {:class "row"}
@@ -192,18 +205,17 @@
           ]
          [:div {:class "row"}
           [:div {:class "col secondapp"}
-           [calvad.map.map/d3-inner-map gridtopo]]
+           [calvad.map.map/d3-inner-map gridtopo @active]]
           ]
          ]
         )))
-
 
 (defn ^:export main [json-file]
   (let []
   (dispatch-sync [:initialize-db])
   (.json js/d3 json-file
          (fn [error json]
-           (reagent/render-component [(partial app json)]
+           (reagent/render-component [app json]
                                      (. js/document (getElementById "app")))
            ))))
 

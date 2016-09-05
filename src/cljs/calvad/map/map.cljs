@@ -39,11 +39,17 @@
 
 
 
-;; letters using d3 controllers
-(defn d3-inner-map [data]
+
+;; map
+
+(defn d3-inner-map [data active]
     (reagent/create-class
      {:reagent-render (fn [] [:div.map
                               [:svg {:width 500 :height 500}
+                               ;; [:rect {:class "background"
+                               ;;         :width 500
+                               ;;         :height 500
+                               ;;         }]
                                ;; translate to 0, height/3.  Not sure why
                                ;; [:g ;;{:transform  "translate(0,167)"}
                                ;;  ]
@@ -51,21 +57,6 @@
       :component-did-mount (fn []
                              (let [d3data (clj->js data)
                                    allgeoms (.-geometries  (.-grids (.-objects d3data)))
-                                   geoms (filterv (fn
-                                                   [item]
-                                                   (and
-                                                    (or
-                                                     (= (.-i_cell (.-properties item)) "146.00000")
-                                                     (= (.-i_cell (.-properties item)) "147.00000")
-                                                     (= (.-i_cell (.-properties item)) "148.00000")
-                                                     )
-                                                    (or
-                                                     (= (.-j_cell (.-properties item)) "220.00000")
-                                                     (= (.-j_cell (.-properties item)) "221.00000")
-                                                     (= (.-j_cell (.-properties item)) "222.00000")
-                                                     )
-                                                     )
-                                                   ) allgeoms)
                                    land (.. js/topojson
                                             (feature d3data
                                                      (clj->js{:type "GeometryCollection"
@@ -76,11 +67,42 @@
                                    path (.projection geoPath
                                          (.rotate gtm (clj->js [124 -32.5]))
                                          (.fitExtent gtm (clj->js [[20 20] [480 480]]) land))
-                                   feat (.-features land)
                                    svg (.. js/d3
                                            (select ".map svg"))
+                                   g (.append svg "g")
+                                   zoomed (fn []
+                                            (let [event (.-event js/d3)
+                                                  transform (.-transform event)
+                                                  x (str (.-x transform))
+                                                  y (str (.-y transform))
+                                                  k (.-k transform)
+                                                  ;; make x y k strings
+                                                  tr (str x  "," y)
+                                                  ]
+                                              (.. g
+                                                  (style "stroke-width"
+                                                         (str/join
+                                                          (str (/ 1.5 k))
+                                                          "px") )
+                                                  (attr "transform"
+                                                        (str
+                                                         "translate ("
+                                                         tr
+                                                         ")scale("
+                                                         (str k)
+                                                         ")") )
+                                                  )))
+                                   zoom (.. (.. js/d3
+                                                zoom.)
+
+                                            (scaleExtent (clj->js [1 8]))
+                                            (on "zoom" zoomed))
+                                   feat (.-features land)
                                    ]
                                (.. svg
+                                   (call zoom))
+
+                               (.. g
                                    (selectAll "path")
                                    (data (clj->js feat))
                                    enter
@@ -90,16 +112,16 @@
                                    ;;(append "title")
                                    ;;(text (fn [d] (.-id d)))
                                    )
-                               ;; (.. svg
-                               ;;     (append "path")
-                               ;;     (datum (.. js/topojson
-                               ;;                (mesh d3data
-                               ;;                      (.-grids (.-objects d3data))
-                               ;;                      (fn [a b] (not (= a b))
-                               ;;                      ))))
-                               ;;     (attr "class" "grid-border")
-                               ;;     (attr "d" path)
-                               ;;     )
+                               (.. svg
+                                   (append "path")
+                                   (datum (.. js/topojson
+                                              (mesh d3data
+                                                    (.-grids (.-objects d3data))
+                                                    (fn [a b] (not (= a b))
+                                                    ))))
+                                   (attr "class" "grid-border")
+                                   (attr "d" path)
+                                   )
                                ))
 
       :component-did-update (fn [this] ())
