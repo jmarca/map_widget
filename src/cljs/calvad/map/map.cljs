@@ -95,7 +95,7 @@
                                    zoom (.. (.. js/d3
                                                 zoom.)
 
-                                            (scaleExtent (clj->js [1 8]))
+                                            (scaleExtent (clj->js [1 100]))
                                             (on "zoom" zoomed))
                                    feat (.-features land)
                                    ]
