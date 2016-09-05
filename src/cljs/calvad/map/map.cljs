@@ -42,7 +42,7 @@
 ;; letters using d3 controllers
 (defn d3-inner-map [data]
     (reagent/create-class
-     {:reagent-render (fn [] [:div
+     {:reagent-render (fn [] [:div.map
                               [:svg {:width 500 :height 500}
                                ;; translate to 0, height/3.  Not sure why
                                ;; [:g ;;{:transform  "translate(0,167)"}
@@ -50,43 +50,56 @@
                                ]])
       :component-did-mount (fn []
                              (let [d3data (clj->js data)
+                                   allgeoms (.-geometries  (.-grids (.-objects d3data)))
+                                   geoms (filterv (fn
+                                                   [item]
+                                                   (and
+                                                    (or
+                                                     (= (.-i_cell (.-properties item)) "146.00000")
+                                                     (= (.-i_cell (.-properties item)) "147.00000")
+                                                     (= (.-i_cell (.-properties item)) "148.00000")
+                                                     )
+                                                    (or
+                                                     (= (.-j_cell (.-properties item)) "220.00000")
+                                                     (= (.-j_cell (.-properties item)) "221.00000")
+                                                     (= (.-j_cell (.-properties item)) "222.00000")
+                                                     )
+                                                     )
+                                                   ) allgeoms)
                                    land (.. js/topojson
                                             (feature d3data
-                                                     {:type "GeometryCollection"
-                                                      :geometries
-                                                      (:geometries
-                                                        (:grids
-                                                         (:objects d3data )))
-                                                      }))
-                                   path (.. js/d3
-                                            (.projection d3.geoPath
-                                              (.. d3.geoTransverseMercator
-                                                  (rotate [124 -32.5])
-                                                  (fitExtent [[20 20] [480 480]] land))))
+                                                     (clj->js{:type "GeometryCollection"
+                                                      :geometries (clj->js allgeoms)
+                                                      })))
+                                   geoPath (js/d3.geoPath.)
+                                   gtm (js/d3.geoTransverseMercator.)
+                                   path (.projection geoPath
+                                         (.rotate gtm (clj->js [124 -32.5]))
+                                         (.fitExtent gtm (clj->js [[20 20] [480 480]]) land))
+                                   feat (.-features land)
                                    svg (.. js/d3
-                                           (select "svg"))
+                                           (select ".map svg"))
                                    ]
                                (.. svg
                                    (selectAll "path")
-                                   (data d3data.geo_json)
-                                   (attr "class" "update")
+                                   (data (clj->js feat))
                                    enter
                                    (append "path")
                                    (attr "class" "grid")
                                    (attr "d" path)
-                                   (append "title")
-                                   (text (fn [d] (.-id d)))
+                                   ;;(append "title")
+                                   ;;(text (fn [d] (.-id d)))
                                    )
-                               (.. svg
-                                   (append "path")
-                                   (datum (.. js/topojson
-                                              (mesh d3data
-                                                    (.-grids (.-objects d3data))
-                                                    (fn [a b] (not (= a b))
-                                                    ))))
-                                   (attr "class" "grid-border")
-                                   (attr "d" path)
-                                   )
+                               ;; (.. svg
+                               ;;     (append "path")
+                               ;;     (datum (.. js/topojson
+                               ;;                (mesh d3data
+                               ;;                      (.-grids (.-objects d3data))
+                               ;;                      (fn [a b] (not (= a b))
+                               ;;                      ))))
+                               ;;     (attr "class" "grid-border")
+                               ;;     (attr "d" path)
+                               ;;     )
                                ))
 
       :component-did-update (fn [this] ())

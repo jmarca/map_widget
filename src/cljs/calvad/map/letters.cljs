@@ -174,7 +174,7 @@
 
 
 
-(defn app []
+(defn app [gridtopo]
     (let [data (subscribe [:circles])
           datal (subscribe [:alphabet])]
       (fn []
@@ -190,10 +190,10 @@
           [:div {:class "col secondcontrol"}
            [clickr]]
           ]
-         ;; [:div {:class "row"}
-         ;;  [:div {:class "col secondapp"}
-         ;;   [calvad.map.map/d3-inner-map gridtopo]]
-         ;;  ]
+         [:div {:class "row"}
+          [:div {:class "col secondapp"}
+           [calvad.map.map/d3-inner-map gridtopo]]
+          ]
          ]
         )))
 
@@ -203,7 +203,7 @@
   (dispatch-sync [:initialize-db])
   (.json js/d3 json-file
          (fn [error json]
-           (reagent/render-component app
+           (reagent/render-component [(partial app json)]
                                      (. js/document (getElementById "app")))
            ))))
 
