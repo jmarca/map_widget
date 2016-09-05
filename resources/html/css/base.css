@@ -29,3 +29,19 @@ div.container div.row {
     font: bold 20px monospace;
     fill: red;
 }
+
+
+
+.grid {
+  fill: #eee;
+}
+
+.grid:hover {
+  fill: orange;
+}
+
+.grid-border {
+  fill: none;
+  stroke: #777;
+  pointer-events: none;
+}

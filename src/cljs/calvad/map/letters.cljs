@@ -172,7 +172,7 @@
              "r " (:r d) (slider :r idx (:r d))])])
 
 
-(defn app []
+(defn app [gridtopo]
   (let [data (subscribe [:circles])
         datal (subscribe [:alphabet])]
     (fn []
@@ -188,84 +188,26 @@
         [:div {:class "col secondcontrol"}
          [clickr]]
          ]
+       [:div {:class "row"}
+        [:div {:class "col secondapp"}
+         [d3-inner-map gridtopo]]
+         ]
         ]
       )))
 
-(let []
+
+(defn ^:export main [json-file]
+  (let []
   (dispatch-sync [:initialize-db])
-  (reagent/render-component [app]
-                            (. js/document (getElementById "app"))))
+  (.json js/d3 json-file
+         (fn [error json]
+           (reagent/render-component (partial app json)
+                                     (. js/document (getElementById "app")))
+           ))))
+
 
 (defn on-js-reload []
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
 )
-
-
-
-     ;; (defn update-letters
-;;   "update the d3 thing, in this case letters"
-;;   [dom-node data ...]
-;;   ;; draw here.  not super sure how to
-;;   (.. js/d3
-;;       (let [g (select dom-node)
-;;             ]
-;;         (. g (selectAll "text"))))
-;;   )
-
-
-;; (defn build-letters-svg
-;;   "build the letters node to manipulate"
-;;   [dom-node]
-;;   (.. js/d3
-;;       (let [svg (select dom-node)
-;;             width (. svg attr "width")
-;;             height (. svg attr "height")
-;;             ]
-;;         (append "g")
-;;         (. g attr "transform" (str/join
-;;                                "translate(32,"
-;;                                (/ height 2)
-;;                                ")"
-;;                                ))
-;;         )))
-
-
-;; (defn d3-gauge [data ...]
-;;   (let [dom-node (r/atom nil)]
-;;     (r/create-class
-;;       {:component-did-update
-;;        (fn [this old-argv]
-;;          (let [[_ data ...] (r/argv this)]
-;;            ;; This is where we get to actually draw the D3 gauge.
-;;            (update-letters @dom-node data ...)))
-
-;;        :component-did-mount
-;;        (fn [this]
-;;          (let [node (r/dom-node this)]
-;;            ;; This will trigger a re-render of the component.
-
-;;            (build-letters-svg node )
-;;            d3Chart.create(el, {
-;;                                width: '100%',
-;;                                height: '300px'
-;;                                }, this.getChartState());
-;;            },
-
-;;            (reset! dom-node node)))
-
-;;        :reagent-render
-;;        (fn [data ...]
-;;          ;; Necessary for Reagent to see that we depend on the dom-node r/atom.
-;;          ;; Note: we don't actually use any of the args here.  This is because
-;;          ;; we cannot render D3 at this point.  We have to wait for the update.
-;;          @dom-node
-;;          [:div.app [:svg]])})))
-
-
-;; (defn ^:export main [json-file]
-;;   (let [width 960
-;;         height 600
-;;         letters-thing (build-force-layout width height)
-;;         svg (build-svg width height)]
