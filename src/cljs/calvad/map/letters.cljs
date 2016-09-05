@@ -9,7 +9,8 @@
                                    subscribe]]
             [clojure.string :as str]
             [cljsjs.d3]
-            [cljsjs.remarkable]))
+            [cljsjs.remarkable]
+            [calvad.map.map]))
 
 
 (enable-console-print!)
@@ -172,28 +173,29 @@
              "r " (:r d) (slider :r idx (:r d))])])
 
 
-(defn app [gridtopo]
-  (let [data (subscribe [:circles])
-        datal (subscribe [:alphabet])]
-    (fn []
-      [:div {:class "container"}
-       [:div {:class "row"}
-        [:div {:class "col firstapp"}
-         [d3-inner @data]]
-        [:div {:class "col firstcontrol"}
-         [sliders @data]]]
-       [:div {:class "row"}
-        [:div {:class "col secondapp"}
-         [d3-inner-letters @datal]]
-        [:div {:class "col secondcontrol"}
-         [clickr]]
+
+(defn app []
+    (let [data (subscribe [:circles])
+          datal (subscribe [:alphabet])]
+      (fn []
+        [:div {:class "container"}
+         [:div {:class "row"}
+          [:div {:class "col firstapp"}
+           [d3-inner @data]]
+          [:div {:class "col firstcontrol"}
+           [sliders @data]]]
+         [:div {:class "row"}
+          [:div {:class "col secondapp"}
+           [d3-inner-letters @datal]]
+          [:div {:class "col secondcontrol"}
+           [clickr]]
+          ]
+         ;; [:div {:class "row"}
+         ;;  [:div {:class "col secondapp"}
+         ;;   [calvad.map.map/d3-inner-map gridtopo]]
+         ;;  ]
          ]
-       [:div {:class "row"}
-        [:div {:class "col secondapp"}
-         [d3-inner-map gridtopo]]
-         ]
-        ]
-      )))
+        )))
 
 
 (defn ^:export main [json-file]
@@ -201,7 +203,7 @@
   (dispatch-sync [:initialize-db])
   (.json js/d3 json-file
          (fn [error json]
-           (reagent/render-component (partial app json)
+           (reagent/render-component app
                                      (. js/document (getElementById "app")))
            ))))
 

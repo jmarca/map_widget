@@ -32,6 +32,7 @@
                  [cljsjs/remarkable "1.6.2-0"]
                  ;;[cljsjs/leaflet "0.7.7-4"] ;; not sure I want this
                  [cljsjs/d3 "4.2.0-0"]
+                 [cljsjs/topojson "1.6.18-0"]
                  ])
 
 (require '[adzerk.boot-cljs :refer [cljs]]

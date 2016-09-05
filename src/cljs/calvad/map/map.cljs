@@ -8,6 +8,7 @@
                                    dispatch-sync
                                    subscribe]]
             [clojure.string :as str]
+            [cljsjs.topojson]
             [cljsjs.d3]))
 
 (def app-state {:grid_shapes {}
@@ -58,10 +59,10 @@
                                                          (:objects d3data )))
                                                       }))
                                    path (.. js/d3
-                                            (d3.geoPath
-                                             (projection (d3.geoTransverseMercator))
-                                             (rotate [120 -35])
-                                             (fitExtent [[20 20] [480 480]] land)))
+                                            (.projection d3.geoPath
+                                              (.. d3.geoTransverseMercator
+                                                  (rotate [124 -32.5])
+                                                  (fitExtent [[20 20] [480 480]] land))))
                                    svg (.. js/d3
                                            (select "svg"))
                                    ]
@@ -81,8 +82,8 @@
                                    (datum (.. js/topojson
                                               (mesh d3data
                                                     (.-grids (.-objects d3data))
-                                                    (fn [a b] (!= a b))
-                                                    )))
+                                                    (fn [a b] (not (= a b))
+                                                    ))))
                                    (attr "class" "grid-border")
                                    (attr "d" path)
                                    )
