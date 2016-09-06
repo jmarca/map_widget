@@ -38,11 +38,27 @@
 ;;  "cell_i":"100","cell_j":"226","year":"2009"}
 
 
-
-
 ;; map
 
-(defn d3-inner-map [data active]
+(defn d3-inner-map [data active click-handler]
+  (defn clicked
+    [e idx grids]
+    ;;(let [newactive (.-target e)]
+    (println (clj->js active))
+    (if (nil? (:element @active))
+      (println "nothing to do")
+      (.classed (:element @active) "active" false))
+    (this-as this
+      (let [e (.select js/d3 this)]
+        (if (.classed e "active")
+          (.classed e "active" false)
+          (.classed e "active" true))
+        ;;(attr "x1" #(.. % -source -x))
+        (dispatch [:active {:element e}])
+        ;; (click-handler {:element e
+        ;;                  ;;:data d
+        ;;                  })
+        )))
     (reagent/create-class
      {:reagent-render (fn [] [:div.map
                               [:svg {:width 500 :height 500}
@@ -61,13 +77,13 @@
                                    land (.. js/topojson
                                             (feature d3data
                                                      (clj->js{:type "GeometryCollection"
-                                                      :geometries (clj->js allgeoms)
-                                                      })))
+                                                              :geometries (clj->js allgeoms)
+                                                              })))
                                    geoPath (js/d3.geoPath.)
                                    gtm (js/d3.geoTransverseMercator.)
                                    path (.projection geoPath
-                                         (.rotate gtm (clj->js [124 -32.5]))
-                                         (.fitExtent gtm (clj->js [[20 20] [480 480]]) land))
+                                                     (.rotate gtm (clj->js [124 -32.5]))
+                                                     (.fitExtent gtm (clj->js [[20 20] [480 480]]) land))
                                    svg (.. js/d3
                                            (select ".map svg"))
                                    g (.append svg "g")
@@ -99,21 +115,6 @@
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
                                    feat (.-features land)
-                                   clicked (fn [e idx grids]
-                                             ;;(let [newactive (.-target e)]
-                                             ;;(.. active
-                                             ;;    (classed "active" false))
-                                             (this-as this
-                                               (let [e (.select js/d3 this)]
-                                                 (if
-                                                     (.classed e "active")
-                                                     (.classed e "active" false)
-                                                     (.classed e "active" true))))
-                                             ;;(attr "x1" #(.. % -source -x))
-                                             ;;#(dispatch [:active {:element newactive
-                                             ;;  :data d}])
-                                             )
-                                   ;;)
                                    ]
                                (.. svg
                                    (call zoom))

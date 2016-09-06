@@ -32,7 +32,9 @@
                       :r 30
                       :color "blue"}]
                 :alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #"")
-                :active ""})
+                :active {:element nil
+                         ;;:data d
+                         }})
 
 
 ;; define your app data so that it doesn't get over-written on reload
@@ -62,6 +64,14 @@
       ;;(println lettres)
       (assoc-in db [:alphabet] lettres)))
   )
+
+(register-handler
+  :active
+  (fn
+    [db [_  val]]
+    (println "val " val)
+    (assoc-in db [:active] val)))
+
 
 
 ;;---- Subscription handlers-----------
@@ -185,7 +195,6 @@
 ;;   (let [necessary-state (r/cursor global-state ["foo" "bar"])]
 ;;     [d3-gauge @necessary-state]))
 
-
 (defn app [gridtopo]
     (let [data (subscribe [:circles])
           datal (subscribe [:alphabet])
@@ -205,7 +214,11 @@
         ;;   ]
          [:div {:class "row"}
           [:div {:class "col secondapp"}
-           [calvad.map.map/d3-inner-map gridtopo @active]]
+           [calvad.map.map/d3-inner-map
+            gridtopo
+            active
+            (fn [incoming]
+              (dispatch [:active incoming]  ))]]
           ]
          ]
         )))
