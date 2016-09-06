@@ -39,12 +39,3 @@ div.container div.row {
 .grid:hover {
   fill: orange;
 }
-
-.grid-border {
-  fill: none;
-  stroke: none;
-  pointer-events: none;
-}
-.grid-border:hover {
-    stroke: #777;
-}

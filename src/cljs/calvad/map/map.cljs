@@ -57,6 +57,7 @@
       :component-did-mount (fn []
                              (let [d3data (clj->js data)
                                    allgeoms (.-geometries  (.-grids (.-objects d3data)))
+
                                    land (.. js/topojson
                                             (feature d3data
                                                      (clj->js{:type "GeometryCollection"
@@ -111,16 +112,6 @@
                                    (attr "d" path)
                                    ;;(append "title")
                                    ;;(text (fn [d] (.-id d)))
-                                   )
-                               (.. svg
-                                   (append "path")
-                                   (datum (.. js/topojson
-                                              (mesh d3data
-                                                    (.-grids (.-objects d3data))
-                                                    (fn [a b] (not (= a b))
-                                                    ))))
-                                   (attr "class" "grid-border")
-                                   (attr "d" path)
                                    )
                                ))
 
