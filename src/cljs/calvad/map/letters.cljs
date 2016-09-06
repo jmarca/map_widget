@@ -192,17 +192,17 @@
           active (subscribe [:active])]
       (fn []
         [:div {:class "container"}
-         [:div {:class "row"}
-          [:div {:class "col firstapp"}
-           [d3-inner @data]]
-          [:div {:class "col firstcontrol"}
-           [sliders @data]]]
-         [:div {:class "row"}
-          [:div {:class "col secondapp"}
-           [d3-inner-letters @datal]]
-          [:div {:class "col secondcontrol"}
-           [clickr]]
-          ]
+        ;;  [:div {:class "row"}
+        ;;   [:div {:class "col firstapp"}
+        ;;    [d3-inner @data]]
+        ;;   [:div {:class "col firstcontrol"}
+        ;;    [sliders @data]]]
+        ;;  [:div {:class "row"}
+        ;;   [:div {:class "col secondapp"}
+        ;;    [d3-inner-letters @datal]]
+        ;;   [:div {:class "col secondcontrol"}
+        ;;    [clickr]]
+        ;;   ]
          [:div {:class "row"}
           [:div {:class "col secondapp"}
            [calvad.map.map/d3-inner-map gridtopo @active]]

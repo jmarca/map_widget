@@ -99,6 +99,21 @@
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
                                    feat (.-features land)
+                                   clicked (fn [e idx grids]
+                                             ;;(let [newactive (.-target e)]
+                                             ;;(.. active
+                                             ;;    (classed "active" false))
+                                             (this-as this
+                                               (let [e (.select js/d3 this)]
+                                                 (if
+                                                     (.classed e "active")
+                                                     (.classed e "active" false)
+                                                     (.classed e "active" true))))
+                                             ;;(attr "x1" #(.. % -source -x))
+                                             ;;#(dispatch [:active {:element newactive
+                                             ;;  :data d}])
+                                             )
+                                   ;;)
                                    ]
                                (.. svg
                                    (call zoom))
@@ -110,6 +125,7 @@
                                    (append "path")
                                    (attr "class" "grid")
                                    (attr "d" path)
+                                   (on "click" clicked)
                                    ;;(append "title")
                                    ;;(text (fn [d] (.-id d)))
                                    )

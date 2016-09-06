@@ -39,3 +39,10 @@ div.container div.row {
 .grid:hover {
   fill: orange;
 }
+
+.grid.active {
+    fill: #449;
+}
+.grid.active:hover {
+    fill: #e4f;
+}
