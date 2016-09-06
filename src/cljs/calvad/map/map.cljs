@@ -114,29 +114,41 @@
 
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
-                                   feat (.-features land)
+                                   land-features (js->clj (.-features land))
+                                   ;; row-keys (map #(str/replace
+                                   ;;                 (get % "i_cell")
+                                   ;;                 #"\.0*"
+                                   ;;                 "")
+                                   ;;               (map #(get % "properties") land-features)
+                                   ;;               )
+                                   ;; mappdfeat (map (fn [a b] {:icell b :feats a}) land-features row-keys )
+                                   groupdfeat (group-by #(str/replace
+                                                          (get (get % "properties") "i_cell")
+                                                          #"\.0*"
+                                                          "") land-features)
+                                   grpkeys (clj->js (sort (keys groupdfeat)))
                                    ]
                                (.. svg
                                    (call zoom))
 
                                (.. g
-                                   (selectAll "path")
-                                   (data (clj->js feat))
+                                   (selectAll "g path")
+                                   (data  grpkeys)
+                                   enter
+                                   (append "g")
+                                   (attr "class" "vmt_0")
+                                   (selectAll "g path")
+                                   (data (fn
+                                           [d,i]
+                                           (println d)
+                                           (clj->js (get groupdfeat d))
+                                           )
+                                         )
                                    enter
                                    (append "path")
-                                   (attr "class"
-                                         ;;(attr "x1" #(.. % -source -x))
-                                         (fn [d]
-                                           (str
-                                            (str/replace
-                                             (.. d -properties -id)
-                                             #"\.0*"
-                                             "")
-                                            " grid")))
+                                   (attr "class" "grid")
                                    (attr "d" path)
                                    (on "click" clicked)
-                                   ;;(append "title")
-                                   ;;(text (fn [d] (.-id d)))
                                    )
                                ))
 

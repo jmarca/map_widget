@@ -46,3 +46,10 @@ div.container div.row {
 .grid.active:hover {
     fill: #e4f;
 }
+
+.grid.red-cell {
+    fill: red;
+}
+.grid.green-cell {
+    fill:green;
+}

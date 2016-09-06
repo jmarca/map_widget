@@ -219,6 +219,8 @@
             active
             (fn [incoming]
               (dispatch [:active incoming]  ))]]
+           [:div {:class "col secondcontrol"}
+            [calvad.map.map/map-data-clickr]]
           ]
          ]
         )))
