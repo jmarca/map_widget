@@ -124,7 +124,15 @@
                                    (data (clj->js feat))
                                    enter
                                    (append "path")
-                                   (attr "class" "grid")
+                                   (attr "class"
+                                         ;;(attr "x1" #(.. % -source -x))
+                                         (fn [d]
+                                           (str
+                                            (str/replace
+                                             (.. d -properties -id)
+                                             #"\.0*"
+                                             "")
+                                            " grid")))
                                    (attr "d" path)
                                    (on "click" clicked)
                                    ;;(append "title")
