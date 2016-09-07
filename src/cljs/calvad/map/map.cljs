@@ -41,25 +41,21 @@
 (defn hpmshandler [err json]
   (let [jj (js->clj json)
         groupdfeat (group-by #(str (get  %  "cell_i") "_"(get % "cell_j"))  jj)
-        grpkeys (clj->js (sort (keys groupdfeat)))
+        grpkeys (clj->js  (keys groupdfeat))
         g (.. js/d3 (selectAll ".map svg g"))
         cells (.selectAll g  "path")
         ]
       (.. cells
           (attr "class"
                 (fn [d i]
-                  (println i)
                   (this-as dom
                     (let [sel (.select js/d3 dom)
                           classes (.property sel "classList")
-                          hpms (get groupdfeat i)
-                          id (str (keys (js->clj d)))
+                          hpms (get groupdfeat (.-id d))
+                          hk (keys (first hpms))
+                          id (str/join hk "_")
                           ]
                       (str classes " hpmsid_" id)))))
-          (classed "nodata" true)
-          )
-      (.. cells
-          (classed "nodata" false)
           (classed "colorme" true))))
     ;;       (attr "class"
     ;;             (fn [d]
@@ -159,51 +155,46 @@
 
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
-                                   land-features (js->clj (.-features land))
-                                   land-ids (map  (fn [d]
-                                                    (let [p (get d "properties")]
-                                                      (str/replace
-                                                       (str (get p "i_cell") "_" (get p "j_cell"))
-                                                       #"\.0*"
-                                                       "")))
-                                                  land-features
-                                                  )
-                                   lif (first land-ids)
-                                   merged-feat-id (map (fn [a b] (assoc a :id b)) land-features land-ids)
-                                   mff (first merged-feat-id)
-                                   groupdfeat (group-by :id merged-feat-id)
+                                   land-features (group-by :id (map  (fn [d]
+                                                    (let [p (get d "properties")
+                                                          id (str/replace
+                                                              (str (get p "i_cell") "_" (get p "j_cell"))
+                                                              #"\.0*"
+                                                              "")
+                                                          ]
+                                                      {:id id :data (assoc d :id id)}))
+                                                       (js->clj (.-features land))
+                                                  ))
+                                   ;; lif (first land-features)
+                                   ;;merged-feat-id (map (fn [a b] {:id b :data (assoc a :id b)}) land-features land-ids)
+                                   ;;mff (first merged-feat-id)
+                                   ;;groupdfeat (group-by :id merged-feat-id)
                                                         ;; #(str/replace
                                                         ;;   (get (get % "properties") "i_cell")
                                                         ;;   #"\.0*"
                                                         ;;   "")
                                                         ;; land-features)
-                                   grpkeys (clj->js (sort (keys groupdfeat)))
+                                   grpkeys (clj->js (keys land-features))
                                    ]
                                (.. svg
                                    (call zoom))
 
                                (.. g
-                                   (selectAll "g path")
+                                   (selectAll "path")
                                    (data  grpkeys)
-                                   enter
-                                   (append "g")
-                                   (attr "class" (fn [d] d))
-                                   (selectAll "g path")
-                                   (data (fn [d i] (clj->js (get groupdfeat d)))
-                                         (fn [d i]
-                                           ;;(println (str d " and i is " i))
-                                           (.-id d)
-                                             ))
                                    enter
                                    (append "path")
                                    (attr "class"
                                          (fn [d]
-                                           (let [
-                                                 id (.-id d)
-                                                 ]
-                                             (str "grid " id)
-                                             )))
-                                   (attr "d" path)
+                                           (str "grid " d)
+                                             ))
+                                   (attr "d" (fn [d]
+                                               (let [myentry (first (get land-features d))
+                                                     mydata (get myentry :data)
+                                                     mypath (path (clj->js mydata))
+                                                     ]
+                                                 mypath
+                                                 )))
                                    (on "click" clicked)
                                    )
                                ))
