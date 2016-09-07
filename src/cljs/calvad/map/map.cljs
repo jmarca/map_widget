@@ -11,9 +11,6 @@
             [cljsjs.topojson]
             [cljsjs.d3]))
 
-(def app-state {:grid_shapes {}
-                :grid_data   {}})
-
 ;; grid shapes is a list of features.  Each item in the list looks like:
 ;; {"type":"Feature",
 ;;  "geometry":{"type":"MultiPolygon",
@@ -37,6 +34,70 @@
 ;;  "f_system":"totals",
 ;;  "cell_i":"100","cell_j":"226","year":"2009"}
 
+(defn colorit [vmt]
+  (if (< vmt 1000) "redvmt" "greenvmt"))
+
+
+(defn hpmshandler [err json]
+  (let [jj (js->clj json)
+        groupdfeat (group-by #(get  %  "cell_i")  jj)
+        grpkeys (clj->js (sort (keys groupdfeat)))
+        g (.. js/d3 (selectAll ".map svg g"))
+        cols (.. g
+                 (selectAll "g")
+                 (data  grpkeys))
+        exitcols (.exit cols)
+        ]
+    (.. exitcols
+        (selectAll "path")
+        (classed "havehpms" false))
+    (.. cols
+        (classed "havehpms" true))
+    (let [cells (.. cols
+                    (selectAll "path")
+                    (data (fn [d i] (clj->js (get groupdfeat d)))
+                          (fn [d i]
+                            (let [id (str (get d "cell_i") "_" (get d "cell_j"))]
+                              id ))
+                          ))
+          exitcells (.exit cells)
+          ]
+      (.. exitcells
+          (attr "class"
+                (fn [d i]
+                  (this-as dom
+                    (let [sel (.select js/d3 dom)
+                          classes (.property sel "classList")
+                          id (str (keys (js->clj d)))
+                          ]
+                      (str classes " hpmsid_" id)))))
+          (classed "nodata" true)
+          )
+      (.. cells
+          (classed "nodata" false)
+          (classed "colorme" true))
+    ;;       (attr "class"
+    ;;             (fn [d]
+    ;;               (let [id (str (.-cell_i d) "_" (.-cell_j d))
+    ;;                     vmtclr (colorit (.-sum_vmt d))]
+    ;;                 (println (str id " " vmtclr))
+    ;;                 (str "grid " id vmtclr)
+    ;;                 ))))
+    ;;   )
+    )))
+
+(defn date-clicker
+  []
+  (let [jf "hpms2009.json"]
+    (.json js/d3 jf hpmshandler)
+    ))
+
+
+
+
+(defn map-data-clickr [param idx value]
+  [:input {:type "button"
+           :on-click #(date-clicker)}])
 
 ;; map
 
@@ -115,13 +176,6 @@
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
                                    land-features (js->clj (.-features land))
-                                   ;; row-keys (map #(str/replace
-                                   ;;                 (get % "i_cell")
-                                   ;;                 #"\.0*"
-                                   ;;                 "")
-                                   ;;               (map #(get % "properties") land-features)
-                                   ;;               )
-                                   ;; mappdfeat (map (fn [a b] {:icell b :feats a}) land-features row-keys )
                                    groupdfeat (group-by #(str/replace
                                                           (get (get % "properties") "i_cell")
                                                           #"\.0*"
@@ -138,11 +192,16 @@
                                    (append "g")
                                    (attr "class" (fn [d] d))
                                    (selectAll "g path")
-                                   (data (fn
-                                           [d,i]
-                                           (clj->js (get groupdfeat d))
-                                           )
-                                         )
+                                   (data (fn [d i] (clj->js (get groupdfeat d)))
+                                         (fn [d i]
+                                           ;;(println (str d " and i is " i))
+                                             (let [props (.-properties d)]
+                                               (str/replace
+                                                (str (.-i_cell props)
+                                                     "_"
+                                                     (.-j_cell props))
+                                                #"\.0*" "")
+                                               )))
                                    enter
                                    (append "path")
                                    (attr "class"
