@@ -45,7 +45,7 @@
         g (.. js/d3 (selectAll ".map svg g"))
         cells (.. g
                   (selectAll "path")
-                  (data grpkeys))
+                  (data grpkeys (fn [d] d)))
         ]
     (.. cells
         exit
@@ -188,7 +188,7 @@
 
                                (.. g
                                    (selectAll "path")
-                                   (data  grpkeys)
+                                   (data grpkeys (fn [d] d))
                                    enter
                                    (append "path")
                                    (attr "class"
