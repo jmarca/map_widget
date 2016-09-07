@@ -38,7 +38,7 @@
   [v]
   (let [c (.. js/d3
              (scalePow.)
-             (exponent 0.5)
+             (exponent 0.3)
              (domain (clj->js [0 1744422]))
              (range (clj->js [0 1])))]
     (.interpolateViridis js/d3 (c v))))
