@@ -136,17 +136,26 @@
                                    (data  grpkeys)
                                    enter
                                    (append "g")
-                                   (attr "class" "vmt_0")
+                                   (attr "class" (fn [d] d))
                                    (selectAll "g path")
                                    (data (fn
                                            [d,i]
-                                           (println d)
                                            (clj->js (get groupdfeat d))
                                            )
                                          )
                                    enter
                                    (append "path")
-                                   (attr "class" "grid")
+                                   (attr "class"
+                                         (fn [d]
+                                           (let [props (.-properties d)
+                                                 id (str/replace
+                                                     (str (.-i_cell props)
+                                                          "_"
+                                                          (.-j_cell props))
+                                                     #"\.0*" "")
+                                                 ]
+                                             (str "grid " id)
+                                             )))
                                    (attr "d" path)
                                    (on "click" clicked)
                                    )
