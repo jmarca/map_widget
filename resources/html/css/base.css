@@ -47,9 +47,9 @@ div.container div.row {
     fill: #e4f;
 }
 
-.grid.red-cell {
+.grid.redvmt {
     fill: red;
 }
-.grid.green-cell {
+.grid.greenvmt {
     fill:green;
 }

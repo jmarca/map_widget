@@ -43,20 +43,27 @@
         groupdfeat (group-by #(str (get  %  "cell_i") "_"(get % "cell_j"))  jj)
         grpkeys (clj->js  (keys groupdfeat))
         g (.. js/d3 (selectAll ".map svg g"))
-        cells (.selectAll g  "path")
+        cells (.. g
+                  (selectAll "path")
+                  (data grpkeys))
         ]
-      (.. cells
-          (attr "class"
-                (fn [d i]
+    (.. cells
+        exit
+        (classed "nohpms" true)
+        (classed "havedata" false))
+    (.. cells
+        (classed "nohpms" false)
+        (classed "havedata" true)
+        (attr "class"
+              (fn [d i]
                   (this-as dom
                     (let [sel (.select js/d3 dom)
                           classes (.property sel "classList")
-                          hpms (get groupdfeat (.-id d))
-                          hk (keys (first hpms))
-                          id (str/join hk "_")
+                          mydata (get (first (get groupdfeat d)) "sum_vmt")
+                          vmtclr (colorit (.-sum_vmt d))
                           ]
-                      (str classes " hpmsid_" id)))))
-          (classed "colorme" true))))
+                    ;; (println (str id " " vmtclr))
+                    (str classes " " vmtclr))))))))
     ;;       (attr "class"
     ;;             (fn [d]
     ;;               (let [id (str (.-cell_i d) "_" (.-cell_j d))
