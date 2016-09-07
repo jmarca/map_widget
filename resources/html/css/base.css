@@ -40,16 +40,16 @@ div.container div.row {
   fill: orange;
 }
 
+.havedata.redvmt {
+    fill: red;
+}
+.havedata.greenvmt {
+    fill:green;
+}
+
 .grid.active {
     fill: #449;
 }
 .grid.active:hover {
     fill: #e4f;
-}
-
-.grid.redvmt {
-    fill: red;
-}
-.grid.greenvmt {
-    fill:green;
 }
