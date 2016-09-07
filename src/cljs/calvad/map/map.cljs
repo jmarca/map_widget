@@ -34,8 +34,14 @@
 ;;  "f_system":"totals",
 ;;  "cell_i":"100","cell_j":"226","year":"2009"}
 
-(defn colorit [vmt]
-  (if (< vmt 1000) "redvmt" "greenvmt"))
+(defn colorit
+  [v]
+  (let [c (.. js/d3
+             (scalePow.)
+             (exponent 0.5)
+             (domain (clj->js [0 1744422]))
+             (range (clj->js [0 1])))]
+    (.interpolateViridis js/d3 (c v))))
 
 
 (defn hpmshandler [err json]
@@ -54,16 +60,13 @@
     (.. cells
         (classed "nohpms" false)
         (classed "havedata" true)
-        (attr "class"
+        (style "fill"
               (fn [d i]
-                  (this-as dom
-                    (let [sel (.select js/d3 dom)
-                          classes (.property sel "classList")
-                          mydata (get (first (get groupdfeat d)) "sum_vmt")
-                          vmtclr (colorit (.-sum_vmt d))
+                    (let [mydata (get (first (get groupdfeat d)) "sum_vmt")
+                          vmtclr (colorit mydata)
                           ]
                     ;; (println (str id " " vmtclr))
-                    (str classes " " vmtclr))))))))
+                    (str vmtclr)))))))
     ;;       (attr "class"
     ;;             (fn [d]
     ;;               (let [id (str (.-cell_i d) "_" (.-cell_j d))
