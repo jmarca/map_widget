@@ -38,6 +38,41 @@
 ;;  "cell_i":"100","cell_j":"226","year":"2009"}
 
 
+(defn pickcolor
+  "pick a color based on VMT value"
+  [vmt]
+  (if (< vmt 1000)
+    "red"
+    "green"))
+
+;; color map
+
+
+(defn date-clicker
+  "fetch data for given date, recolor grids by changing coloring class"
+  []
+  (let [jf "hpms2009.json"]
+    (.json js/d3 jf
+           (fn [error json]
+             (let [jj (js->clj json)
+                   svg (.select js/d3 ".map svg g")
+                   makeid (fn [r] (str (get r "cell_i") "_" (get r "cell_j")))
+                   selector #(str "path." %)
+                   path #(.select svg %)
+                   elements (map #(path (selector (makeid %))) json)
+                   e (clj->js elements)
+                   ]
+               (.. e
+                   (style "fill" "red"))
+               )))))
+
+
+(defn map-data-clickr [param idx value]
+  [:input {:type "button"
+           :on-click #(date-clicker)}])
+
+
+
 ;; map
 
 (defn d3-inner-map [data active click-handler]
