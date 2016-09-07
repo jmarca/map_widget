@@ -40,34 +40,19 @@
 
 (defn hpmshandler [err json]
   (let [jj (js->clj json)
-        groupdfeat (group-by #(get  %  "cell_i")  jj)
+        groupdfeat (group-by #(str (get  %  "cell_i") "_"(get % "cell_j"))  jj)
         grpkeys (clj->js (sort (keys groupdfeat)))
         g (.. js/d3 (selectAll ".map svg g"))
-        cols (.. g
-                 (selectAll "g")
-                 (data  grpkeys))
-        exitcols (.exit cols)
+        cells (.selectAll g  "path")
         ]
-    (.. exitcols
-        (selectAll "path")
-        (classed "havehpms" false))
-    (.. cols
-        (classed "havehpms" true))
-    (let [cells (.. cols
-                    (selectAll "path")
-                    (data (fn [d i] (clj->js (get groupdfeat d)))
-                          (fn [d i]
-                            (let [id (str (get d "cell_i") "_" (get d "cell_j"))]
-                              id ))
-                          ))
-          exitcells (.exit cells)
-          ]
-      (.. exitcells
+      (.. cells
           (attr "class"
                 (fn [d i]
+                  (println i)
                   (this-as dom
                     (let [sel (.select js/d3 dom)
                           classes (.property sel "classList")
+                          hpms (get groupdfeat i)
                           id (str (keys (js->clj d)))
                           ]
                       (str classes " hpmsid_" id)))))
@@ -75,7 +60,7 @@
           )
       (.. cells
           (classed "nodata" false)
-          (classed "colorme" true))
+          (classed "colorme" true))))
     ;;       (attr "class"
     ;;             (fn [d]
     ;;               (let [id (str (.-cell_i d) "_" (.-cell_j d))
@@ -84,7 +69,6 @@
     ;;                 (str "grid " id vmtclr)
     ;;                 ))))
     ;;   )
-    )))
 
 (defn date-clicker
   []
@@ -176,10 +160,23 @@
                                             (scaleExtent (clj->js [1 512]))
                                             (on "zoom" zoomed))
                                    land-features (js->clj (.-features land))
-                                   groupdfeat (group-by #(str/replace
-                                                          (get (get % "properties") "i_cell")
-                                                          #"\.0*"
-                                                          "") land-features)
+                                   land-ids (map  (fn [d]
+                                                    (let [p (get d "properties")]
+                                                      (str/replace
+                                                       (str (get p "i_cell") "_" (get p "j_cell"))
+                                                       #"\.0*"
+                                                       "")))
+                                                  land-features
+                                                  )
+                                   lif (first land-ids)
+                                   merged-feat-id (map (fn [a b] (assoc a :id b)) land-features land-ids)
+                                   mff (first merged-feat-id)
+                                   groupdfeat (group-by :id merged-feat-id)
+                                                        ;; #(str/replace
+                                                        ;;   (get (get % "properties") "i_cell")
+                                                        ;;   #"\.0*"
+                                                        ;;   "")
+                                                        ;; land-features)
                                    grpkeys (clj->js (sort (keys groupdfeat)))
                                    ]
                                (.. svg
@@ -195,23 +192,14 @@
                                    (data (fn [d i] (clj->js (get groupdfeat d)))
                                          (fn [d i]
                                            ;;(println (str d " and i is " i))
-                                             (let [props (.-properties d)]
-                                               (str/replace
-                                                (str (.-i_cell props)
-                                                     "_"
-                                                     (.-j_cell props))
-                                                #"\.0*" "")
-                                               )))
+                                           (.-id d)
+                                             ))
                                    enter
                                    (append "path")
                                    (attr "class"
                                          (fn [d]
-                                           (let [props (.-properties d)
-                                                 id (str/replace
-                                                     (str (.-i_cell props)
-                                                          "_"
-                                                          (.-j_cell props))
-                                                     #"\.0*" "")
+                                           (let [
+                                                 id (.-id d)
                                                  ]
                                              (str "grid " id)
                                              )))
