@@ -32,9 +32,10 @@
                       :r 30
                       :color "blue"}]
                 :alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #"")
-                :active {:element nil
-                         ;;:data d
-                         }})
+                :datablob {} ;; for plotting widget
+                :griddata {} ;; for hpms data coloring map
+                :active {:element nil} ;; for which grid cell clicked
+                })
 
 
 ;; define your app data so that it doesn't get over-written on reload
@@ -69,8 +70,13 @@
   :active
   (fn
     [db [_  val]]
-    (println "val " val)
     (assoc-in db [:active] val)))
+
+(register-handler
+  :datablob
+  (fn
+    [db [_  val]]
+    (assoc-in db [:datablob] val)))
 
 
 
@@ -93,6 +99,12 @@
   (fn
     [db _]
     (reaction (:active @db))))
+
+(register-sub
+  :datablob
+  (fn
+    [db _]
+    (reaction (:datablob @db))))
 
 
 ;; circles using d3 controllers
@@ -198,7 +210,8 @@
 (defn app [gridtopo]
     (let [data (subscribe [:circles])
           datal (subscribe [:alphabet])
-          active (subscribe [:active])]
+          active (subscribe [:active])
+          datablob (subscribe [:datablob])]
       (fn []
         [:div {:class "container"}
         ;;  [:div {:class "row"}
@@ -217,11 +230,19 @@
            [calvad.map.map/d3-inner-map
             gridtopo
             active
-            (fn [incoming]
-              (dispatch [:active incoming]  ))]]
+;;            griddata
+              ]]
            [:div {:class "col secondcontrol"}
             [calvad.map.map/map-data-clickr]]
           ]
+         ]
+        ;; plotting pair
+         [:div {:class "row"}
+          [:div {:class "col secondapp"}
+           [calvad.map.plot/d3-inner-plot
+            datablob
+            active
+              ]]
          ]
         )))
 

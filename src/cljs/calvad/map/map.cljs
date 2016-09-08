@@ -91,7 +91,7 @@
 
 ;; map
 
-(defn d3-inner-map [data active click-handler]
+(defn d3-inner-map [data active]
   (defn clicked
     [e idx grids]
     ;;(let [newactive (.-target e)]
@@ -106,9 +106,6 @@
           (.classed e "active" true))
         ;;(attr "x1" #(.. % -source -x))
         (dispatch [:active {:element e}])
-        ;; (click-handler {:element e
-        ;;                  ;;:data d
-        ;;                  })
         )))
     (reagent/create-class
      {:reagent-render (fn [] [:div.map
