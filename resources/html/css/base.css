@@ -29,7 +29,10 @@ div.container div.row {
     font: bold 20px monospace;
     fill: red;
 }
-
+.exit {
+    font: bold 20px monospace;
+  fill: brown;
+}
 
 
 .grid {
