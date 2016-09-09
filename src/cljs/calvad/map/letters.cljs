@@ -9,14 +9,16 @@
                                    dispatch-sync
                                    subscribe]]
             [clojure.string :as str]
+            [clojure.set :as set]
             [cljsjs.d3]
             [cljsjs.remarkable]
-            [calvad.map.map]
-            [calvad.map.litter]))
+            [calvad.map.map]))
 
 
 (enable-console-print!)
 (println "Edits to this text should show up in your developer console.")
+
+(def alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #""))
 
 (def app-state {:circles [{:name "circle 1"
                       :x 10
@@ -40,36 +42,42 @@
                 :active {:element nil} ;; for which grid cell clicked
                 })
 
-(defn d3-inner-l [data d2]
+(defn d3-inner-l [d]
   (reagent/create-class
-   {:reagent-render (fn [data d2]
-                      (println "rendering a letter")
-                      [:text "?" ])
+   {:reagent-render (fn [d]
+                      (println "rendering a letter with " d)
+                      [:text d (:d d) ])
     :display-name  "my-letter-component"  ;; for more helpful warnings & errors
     :component-will-update
     (fn [this new-argv] ;; fn[this new-argv]
-      ;;(println new-argv)
       (let [[_ newdata] (reagent/argv this)
             d3data (clj->js newdata)
             ;; moving position, have something to do
             node (.select js/d3 (rdom/dom-node this))
-            x (.-x d3data)
-            y (.-y d3data)
-            ;;class (:class newdata)
-            ;;fill-opacity (:fill-opacity newdata)
+            x (:x newdata)
+            y (:y newdata)
+            i (:i newdata)
+            class (:class newdata)
+            fill-opacity (:fill-opacity d3data)
+            t (.. (js/d3.transition.)
+                  (duration 750)
+                  (ease js/d3.easeCubicInOut))
             ]
+        (println "update a letter with " newdata )
 
         (.. node
-                (attr "class" "update")
+                (attr "class" class)
                 (attr "y" y)
+                ;;(transition t)
                 (attr "x" x)
-                (text (.-d d3data))
                 ))
         )
     :component-did-update (fn [this]
-                            (println "letter component updated"))
+                            ;;(println "letter component updated")
+                            )
     :component-did-mount (fn []
-                           (println "letter component mounted"))
+                           ;;(println "letter component mounted")
+                           )
     }))
 
 
@@ -92,26 +100,22 @@
   :update-letter
   (fn
     [db [_ idx val]]
-    ;;(println "idx " idx "param " param "val " val)
+    (println "update letter " idx " vals " val)
     (assoc-in db [:letts idx ] val)))
 
 (register-handler
   :enter-letter
   (fn
-    [db [_ key valhash node]]
-    (println "try to load in db:  key " key  "val " valhash)
+    [db [_ key valhash]]
+    ;;(println "try to load in db:  key " key  "val " valhash)
     (assoc-in db [:letts key] valhash)
-    ;; now create a dom entry
-    (let [l (subscribe [:letts key])]
-      (println "subscribed to " @l)
-      (reagent/render-component
-       [d3-inner-l @l] node))))
+    ))
 
 (register-handler
   :exit-letter
   (fn
     [db [_ idx]]
-    ;;(println "idx " idx "param " param "val " val)
+    (println "exit letter " idx )
     (dissoc db [:letts idx ])))
 
 
@@ -123,7 +127,7 @@
     ;;(println "shuffle and cut")
     (let [lettres (random-sample
                    0.5
-                   (str/split "abcdefghijklmnopqrstuvwxyz" #"")
+                   (.shuffle js/d3 (clj->js alphabet))
                    )]
       ;;(println lettres)
       (assoc-in db [:alphabet] lettres)))
@@ -132,9 +136,44 @@
 (register-handler
   :alphabet
   (fn
-    [db [_ val]]
-    (println (str "handling " val))
-    (assoc-in db [:alphabet] val)))
+    [db [_ vals]]
+    (println (str "handling " vals))
+    (let [current  (set (keys (doall (get-in db [:letts]))))
+          enters (doall (set/difference (set vals) current))
+          exits  (doall (set/difference current vals))
+          updates (doall (set/difference (set vals) (doall enters)))
+          ]
+      (assoc-in db [:alphabet] vals)
+      ;; ;; also modify individual letters
+      (let [delete-group (doall (map #(dispatch [:exit-letter %]) exits))
+            enter-group  (doall (map-indexed
+                                 (fn [idx ch]
+                                   (let [
+                                         elem {:class "enter"
+                                               :y 0
+                                               :fill-opacity 1
+                                               :x (* idx 15)
+                                               :d ch
+                                               :i idx}]
+                                     (dispatch [:enter-letter ch elem]
+                                               )))
+                                 enters ))
+            update-group (doall (map-indexed
+                                 (fn [idx ch]
+                                   (let [
+                                         elem {:class "update"
+                                               :y 0
+                                               :fill-opacity 1
+                                               :x (* idx 15)
+                                               :d ch
+                                               :i idx}]
+                                     (dispatch [:enter-letter ch elem]
+                                               )))
+                                 updates ))
+            ])
+      )))
+
+(dispatch [:alphabet (clj->js alphabet)])
 
 (register-handler
   :active
@@ -237,42 +276,9 @@
 ;; :reagent-render (fn [args....])   ;; or :render (fn [this])
 ;; }
 
-(def alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #""))
 
-(defn update-letter
-  "use reagent instead of d3 to update letters
-   This will set the class to update, and trigger the update handler"
-  [d i]
-  ;; (attr "class" "update")
-  ;; (attr "y" 0)
-  ;; (style "fill-opacity" 1)
-  ;; (transition t)
-  ;; (attr "x" (fn [d i] (* i 15))))
-
-    (dispatch [:update-letter d {:class "update"
-                                 :y 0
-                                 :fill-opacity 1
-                                 :x (* i 15)}
-               ]
-              ))
-
-(defn exit-letter
-  [d i]
-    (dispatch [:exit-letter d ]))
-
-(defn enter-letter
-  [d i node]
-  (println (str "enter letter handler" d))
-  (dispatch [:enter-letter d {:class "enter"
-                              :y 0
-                              :fill-opacity 1
-                              :x (* i 15)
-                              :d d
-                              :i i} node
-               ]
-  ))
-
-(defn d3-inner-letters [data]
+(defn d3-inner-letters
+  [data]
   (reagent/create-class
    {:component-will-mount
     (fn []
@@ -293,10 +299,26 @@
                             0.5
                             (.shuffle js/d3 (clj->js alphabet)))]))
 
+    :display-name "letters"
 
-    :reagent-render (fn [] [:div.letters
-                            [:svg {:class "letters" :width 500 :height 124}
-                             [:g {:transform  "translate(15,62)"}]]])
+    :reagent-render (fn
+                      [data]
+                      (let [d3data (clj->js data)
+                            t (.. (js/d3.transition.)
+                                  (duration 750))
+                            ]
+                        [:div.letters
+                         [:svg {:class "letters" :width 500 :height 124}
+                          [:g {:transform  "translate(15,62)"}
+                           (println "alphabet render, iterating over letters")
+                           (doall
+                            (map
+                             (fn [ch]
+                               (let [sub (subscribe [:letts ch])]
+                                 ^{:key ch} [d3-inner-l @sub]))
+                             data))
+                           ]]]
+                        ))
 
 
     :component-did-update (fn [this]
@@ -306,54 +328,10 @@
                                         (duration 750))
                                   g (.select js/d3 "svg.letters g")
                                   ]
-                              (.each g
-                                     (fn [p j]
-                                       (this-as node
-                                         (let [texta (.. (.select js/d3 node)
-                                                         (selectAll "text")
-                                                         (data d3data (fn [d] d)))
-                                               ]
-                                           ;; exiting letters
-                                           (.. texta
-                                               exit
-                                               (each exit-letter))
-                                           ;; attr "class" "exit")
-                                           ;;     (transition t)
-                                           ;;     (attr "y" 60)
-                                           ;;     (style "fill-opacity" 0.000001)
-                                           ;;     (remove)
-                                           ;; updating letters
-                                           (.. texta
-                                               (each update-letter))
-                                           ;; (attr "class" "update")
-                                           ;; (attr "y" 0)
-                                           ;; (style "fill-opacity" 1)
-                                           ;; (transition t)
-                                           ;; (attr "x" (fn [d i] (* i 15))))
-                                           ;; entering letters
-                                           (.. texta
-                                               enter
-                                               (each (fn [d i]
-                                                       (enter-letter d i node)
-                                                       )))
-
-
-                                           ;; (append "text")
-                                           ;; (attr "class" "enter")
-                                           ;; (attr "dy" ".35em")
-                                           ;; (attr "y" -60)
-                                           ;; (attr "x" (fn [d i] (* i 15)))
-                                           ;; (style "fill-opacity" 0.000001)
-                                           ;; (text (fn [d] d))
-                                           ;; (transition t)
-                                           ;; (attr "y" 0)
-                                           ;; (style "fill-opacity" 1)
-                                           ;; )
-                                           ))))))
-
+                              nil))
 
     :component-did-mount (fn []
-                           (println (str "did mount called, setting alphabe to" alphabet))
+                           ;; (println (str "did mount called for letters, setting alphabet to" alphabet))
                            ;; (dispatch [:alphabet alphabet])
                            )
                            }))
