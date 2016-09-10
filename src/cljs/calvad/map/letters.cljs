@@ -2,10 +2,12 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [reagent.core :as reagent ]
             [reagent.dom :as rdom]
-            [re-frame.core :refer [register-handler
-                                   path
+            [re-frame.core :refer [path
                                    trim-v
-                                   register-sub
+                                   reg-sub
+                                   reg-event-db
+                                   reg-event-fx
+                                   debug
                                    dispatch
                                    dispatch-sync
                                    subscribe]]
@@ -49,30 +51,10 @@
 
 
 (reg-event-db                 ;; setup initial state
-  :initialize                     ;; usage:  (dispatch [:initialize])
+  :initialize-db                     ;; usage:  (dispatch [:initialize])
   (fn
     [db _]
     (merge db app-state)))    ;; what it returns becomes the new state
-
-(reg-event-db
-  :time-color                     ;; usage:  (dispatch [:time-color 34562])
-  (path [:time-color])            ;; this is middleware
-  (fn
-    [time-color [_ value]]        ;; path middleware adjusts the first parameter
-    value))
-
-;; #(dispatch
-;;   [:time-color (-> % .-target .-value)])
-
-
-
-(reg-event-db
-  :timer
-  (fn
-    ;; the first item in the second argument is :timer the second is the
-    ;; new value
-    [db [_ value]]
-    (assoc db :timer value)))    ;; return the new version of db
 
 
 ;; the chain of interceptors we use for all handlers that manipulate letters
@@ -137,13 +119,13 @@
 
 (reg-event-fx
  :alphabet-letters
- (path :alphabet) trim-v
+ [(path :alphabet) trim-v]
  (fn [oldalpha [newalpha]]
    ;; 1st argument is coeffects, instead of db
    ;; endeavor to make a list of letter updates to dispatch
 
    (let [incoming (str/split newalpha #"")
-         outgoing (str/split oldalpha #"")
+         outgoing (str/split (:db oldalpha) #"")
           enters  (set/difference (set incoming) (set outgoing))
           exits   (set/difference (set outgoing) (set incoming))
           updates (set/difference (set incoming) (set enters))
@@ -159,12 +141,19 @@
                                      :i idx}]
                            elem))
                        incoming )
-         dispatch-list (map #(:dispatch [:letter-update % ]) update-group)
-         exit-list (map #(:dispatch [:letter-exit % ]) exit-group)
+         dispatch-list (map (fn [d] {:dispatch [:letter-update d]}) update-group)
+         exit-list (map (fn [d] {:dispatch [:letter-exit d ]}) exits)
          ]
-     (concat {:dispatch [:alphabet  a]}
+     (println outgoing)
+     (println incoming)
+     (println exits)
+     (println dispatch-list)
+     ;;(println
+     (concat {:dispatch [:alphabet  newalpha]}
              dispatch-list
              exit-list)
+     ;;)
+
      )))
 ;; untested
 
@@ -234,137 +223,154 @@
 
 
 
-(register-handler
+(reg-event-fx
   :shuffle
   (fn
     [db [_ ]]
     ;;(println "shuffle and cut")
-    (let [lettres (clj->js (random-sample
+    (let [lettres (random-sample
                    0.5
                    ;;(.shuffle js/d3 (clj->js
                    alphabet
                    ;;))
-                   ))]
-      (println db)
-      (dispatch [:alphabet lettres])))
+                   )]
+      (println lettres)
+      (dispatch [:alphabet-letters lettres])
+      ))
   )
 
 ;; experimenting and learning interceptors
-(def trim-event
-  (re-frame.core/->interceptor
-    :id      :trim-event
-    :before  (fn [context]
-               (let [trim-fn (fn [event] (-> event rest vec))]
-                 (update-in context [:coeffects :event] trim-fn)))))
+;; (def trim-event
+;;   (re-frame.core/->interceptor
+;;     :id      :trim-event
+;;     :before  (fn [context]
+;;                (let [trim-fn (fn [event] (-> event rest vec))]
+;;                  (update-in context [:coeffects :event] trim-fn)))))
+;;
+;; (defn db-handler->interceptor
+;;   [db-handler-fn]
+;;   (re-frame.core/->interceptor     ;; a utility function supplied by re-frame
+;;     :id     :db-handler            ;; ids are decorative only
+;;     :before (fn [context]
+;;               (let [{:keys [db event]} (:coeffects context)    ;; extract db and event from coeffects
+;;                     new-db (db-handler-fn db event)]           ;; call the handler
+;;                 (assoc-in context [:effects :db] new-db))))) ;; put db back into :effects
 
-(defn db-handler->interceptor
-  [db-handler-fn]
-  (re-frame.core/->interceptor     ;; a utility function supplied by re-frame
-    :id     :db-handler            ;; ids are decorative only
-    :before (fn [context]
-              (let [{:keys [db event]} (:coeffects context)    ;; extract db and event from coeffects
-                    new-db (db-handler-fn db event)]           ;; call the handler
-                (assoc-in context [:effects :db] new-db)))))) ;; put db back into :effects
+;; (reg-event-db
+;;  :alphabet-change
+;;  [trim-event intercept-letters]
+;;   (fn [db v]
+;;     {:db (assoc db :alphabet )}
+;;     [db [_ vals]]
+;;     (println (str ":alphabet dispatcher handling " vals))
+;;     (let [incoming (sort (set vals))
+;;           current  (set (sort (keys (:letts db))))
+;;           enters (doall (set/difference incoming current))
+;;           exits  (doall (set/difference current incoming))
+;;           updates (doall (set/difference (set incoming) (doall enters)))
+;;           ]
+;;       (println "previous" (sort current) "new" incoming)
+;;       (println "enters " enters "exits " exits )
+;;       (println db)
+;;       ;; ;; also modify individual letters
+;;       (let [;;delete-group (doall (map #(dispatch [:exit-letter (keyword %)]) exits))
+;;             enter-group  (doall (map-indexed
+;;                           (fn [idx ch]
+;;                             (let [
+;;                                   elem {:class "enter"
+;;                                         :y 0
+;;                                         :fill-opacity 1
+;;                                         :x (* idx 15)
+;;                                         :d ch
+;;                                         :i idx}]
+;;                                      elem))
+;;                                  enters ))
+;;             update-group (doall (map-indexed
+;;                           (fn [idx ch]
+;;                             (let [
+;;                                   elem {:class "update"
+;;                                         :y 0
+;;                                         :fill-opacity 1
+;;                                         :x (* idx 15)
+;;                                         :d ch
+;;                                         :i idx}]
+;;                               ))
+;;                           updates ))
 
-(reg-event-db
- :alphabet-change
- [trim-event intercept-letters]
-  (fn [db v] ...
-    {:db (assoc db :alphabet )}
-    [db [_ vals]]
-    (println (str ":alphabet dispatcher handling " vals))
-    (let [incoming (sort (set vals))
-          current  (set (sort (keys (:letts db))))
-          enters (doall (set/difference incoming current))
-          exits  (doall (set/difference current incoming))
-          updates (doall (set/difference (set incoming) (doall enters)))
-          ]
-      (println "previous" (sort current) "new" incoming)
-      (println "enters " enters "exits " exits )
-      (println db)
-      ;; ;; also modify individual letters
-      (let [;;delete-group (doall (map #(dispatch [:exit-letter (keyword %)]) exits))
-            enter-group  (doall (map-indexed
-                          (fn [idx ch]
-                            (let [
-                                  elem {:class "enter"
-                                        :y 0
-                                        :fill-opacity 1
-                                        :x (* idx 15)
-                                        :d ch
-                                        :i idx}]
-                                     elem))
-                                 enters ))
-            update-group (doall (map-indexed
-                          (fn [idx ch]
-                            (let [
-                                  elem {:class "update"
-                                        :y 0
-                                        :fill-opacity 1
-                                        :x (* idx 15)
-                                        :d ch
-                                        :i idx}]
-                              ))
-                          updates ))
-
-            ]
-        (for [e enter-group]
-          (dispatch [:enter-letter (keyword (:d e)) e]))
+;;             ]
+;;         (for [e enter-group]
+;;           (dispatch [:enter-letter (keyword (:d e)) e]))
 
 
-        ;;(concat enter-group update-group)))
+;;         ;;(concat enter-group update-group)))
 
-        )
-      )))
+;;         )
+;;       )))
 
 ;;(dispatch [:shuffle])
 
-(register-handler
+(reg-event-db
   :active
   (fn
     [db [_  val]]
     (assoc-in db [:active] val)))
 
-(register-handler
-  :datablob
-  (fn
-    [db [_  val]]
-    (assoc-in db [:datablob] val)))
-
-
 
 ;;---- Subscription handlers-----------
-(register-sub
+(reg-sub
   :circles
   (fn
     [db _]
     (reaction (:circles @db))))
 
 
-(register-sub
+(reg-sub
   :alphabet
   (fn
     [db _]
     (reaction (:alphabet @db))))
 
-(register-sub
+(reg-sub
   :active
   (fn
     [db _]
     (reaction (:active @db))))
 
-(register-sub
-  :datablob
-  (fn
-    [db _]
-    (reaction (:datablob @db))))
+;; one again working through todo-mvc and other
+;; two step registration of a subscription
+(defn sorted-letters
+  [db _]
+  (:letters db))
+(reg-sub :sorted-letters sorted-letters)
 
+(reg-sub
+ :letters
+  ;; Although not required in this example, it is called with two paramters
+  ;; being the two values supplied in the originating `(subscribe X Y)`.
+  ;; X will be the query vector and Y is an advanced feature and out of scope
+  ;; for this explanation.
+ (fn [query-v _]
+   (subscribe [:sorted-letters]))    ;; returns a single input signal
 
-(register-sub
-  :letts
-  (fn
-    [db [_ d]]
-    (reaction (get-in @db [:letts d]))))
+  ;; This 2nd fn does the computation. Data values in, derived data out.
+  ;; It is the same as the two simple subscription handlers up at the top.
+  ;; Except they took the value in app-db as their first argument and, instead,
+  ;; this function takes the value delivered by another input signal, supplied by the
+  ;; function above: (subscribe [:sorted-todos])
+  ;;
+  ;; Subscription handlers can take 3 parameters:
+  ;;  - the input signals (a single item, a vector or a map)
+  ;;  - the query vector supplied to query-v  (the query vector argument
+  ;; to the "subscribe") and the 3rd one is for advanced cases, out of scope for this discussion.
+  (fn [sorted-letters query-v _]
+    (keys sorted-letters)))
+
+(reg-sub
+ :letter
+ (fn [query-v _]
+   (subscribe [:sorted-letters]))
+ (fn [sorted-letters query-v _]
+   (get sorted-letters query-v)))
 
 ;; circles using d3 controllers
 (defn d3-inner [data]
@@ -453,10 +459,9 @@
                       (let [d3data (clj->js data)
                             t (.. (js/d3.transition.)
                                   (duration 750))
-                            texts (doall
-                                   (map
+                            texts (doall(map
                                     (fn [ch]
-                                      (let [sub (subscribe [:letts ch])]
+                                      (let [sub (subscribe [:letter ch])]
                                         ^{:key ch} [d3-inner-l @sub]))
                                     data))
                             ]
@@ -517,9 +522,10 @@
 
 (defn app [gridtopo]
     (let [data (subscribe [:circles])
-          datal (subscribe [:alphabet])
+          datal (subscribe [:sorted-letters])
           active (subscribe [:active])
-          datablob (subscribe [:datablob])]
+          ;;datablob (subscribe [:datablob])
+          ]
       (fn []
         [:div {:class "container"}
         ;;  [:div {:class "row"}
