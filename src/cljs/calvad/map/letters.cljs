@@ -160,9 +160,11 @@
                            elem))
                        incoming )
          dispatch-list (map #(:dispatch [:letter-update % ]) update-group)
+         exit-list (map #(:dispatch [:letter-exit % ]) exit-group)
          ]
      (concat {:dispatch [:alphabet  a]}
-             dispatch-list)
+             dispatch-list
+             exit-list)
      )))
 ;; untested
 
