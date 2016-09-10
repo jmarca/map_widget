@@ -4,6 +4,7 @@
             [reagent.dom :as rdom]
             [re-frame.core :refer [register-handler
                                    path
+                                   trim-v
                                    register-sub
                                    dispatch
                                    dispatch-sync
@@ -20,6 +21,10 @@
 
 (def alphabet (rest (str/split "abcdefghijklmnopqrstuvwxyz" #"")))
 
+(def initial-state
+  {:timer (js/Date.)
+   :time-color "#f88"})
+
 (def app-state {:circles [{:name "circle 1"
                       :x 10
                       :y 10
@@ -35,12 +40,132 @@
                       :y 500
                       :r 30
                       :color "blue"}]
-                :letts {}
+                :letters (sorted-map)
                 :alphabet ""
-                :datablob {} ;; for plotting widget
-                :griddata {} ;; for hpms data coloring map
-                :active {:element nil} ;; for which grid cell clicked
+                :active {} ;; for which grid cell clicked
                 })
+
+;; -- Event Handlers ----------------------------------------------------------
+
+
+(reg-event-db                 ;; setup initial state
+  :initialize                     ;; usage:  (dispatch [:initialize])
+  (fn
+    [db _]
+    (merge db app-state)))    ;; what it returns becomes the new state
+
+(reg-event-db
+  :time-color                     ;; usage:  (dispatch [:time-color 34562])
+  (path [:time-color])            ;; this is middleware
+  (fn
+    [time-color [_ value]]        ;; path middleware adjusts the first parameter
+    value))
+
+;; #(dispatch
+;;   [:time-color (-> % .-target .-value)])
+
+
+
+(reg-event-db
+  :timer
+  (fn
+    ;; the first item in the second argument is :timer the second is the
+    ;; new value
+    [db [_ value]]
+    (assoc db :timer value)))    ;; return the new version of db
+
+
+;; the chain of interceptors we use for all handlers that manipulate letters
+(def letter-interceptors [;;check-spec-interceptor               ;; ensure the spec is still valid
+                          (path :letters)                        ;; 1st param to handler will be the value from this path
+                          ;;->local-store                        ;; write todos to localstore
+                          debug                                  ;; look in your browser console for debug logs
+                          trim-v])                               ;; removes first (event id) element from the event vec
+
+;; the chain of interceptors we use for all handlers that manipulate letters
+(def alphabet-interceptors [;;check-spec-interceptor             ;; ensure the spec is still valid
+                          (path :alphabet)                       ;; 1st param to handler will be the value from this path
+                          ;;->local-store                        ;; write todos to localstore
+                          debug                                  ;; look in your browser console for debug logs
+                          trim-v])                               ;; removes first (event id) element from the event vec
+
+;; (defn allocate-next-id
+;;   "Returns the next letter id.
+;;   Assumes letters are sorted (sorted-map).
+;;   Returns one more than the current largest id."
+;;   [todos]
+;;   ((fnil inc 0) (last (keys todos))))
+
+;; new letter into db
+;; usage:  (dispatch [:letter-enter  {:text "d" :hash "of" :properties true}])
+;; (reg-event-db                     ;; given a hash with a :text entry, create or edit new letter entry
+;;   :letter-enter
+;;   letter-interceptors
+;;   (fn [letters [value]]              ;; the "path" interceptor in `todo-interceptors` means 1st parameter is :todos
+;;     (let [id (:text value)]
+;;       (assoc todos id value))))
+;; for my money, assoc is the same as assoc-in
+
+
+;; update (or create) an existing (or non-existant) letter hash in db
+;; for example, change position x or y, set class, etc
+;; usage:  (dispatch [:letter-update  {:text "d" :hash "of" :properties true}])
+(reg-event-db
+  :letter-update
+  letter-interceptors
+  (fn [letters [value]]
+    (let [id (:text value)]
+      (assoc-in letters [id] value))))
+
+
+;; remove a letter from the db completely.  Just forget about it
+;; usage:  (dispatch [:letter-exit "d"])
+(reg-event-db
+  :letter-exit
+  letter-interceptors
+  (fn [letters [id]]
+    (dissoc letters id)))
+
+
+;; update the alphabet, but not here does not trigger letters updates
+;; usage:  (dispatch [:alphabet "asdktrhd"])
+(reg-event-db
+  :alphabet
+  alphabet-interceptors
+  (fn [alphabet [value]]
+     value))
+
+(reg-event-fx
+ :alphabet-letters
+ (path :alphabet) trim-v
+ (fn [oldalpha [newalpha]]
+   ;; 1st argument is coeffects, instead of db
+   ;; endeavor to make a list of letter updates to dispatch
+
+   (let [incoming (str/split newalpha #"")
+         outgoing (str/split oldalpha #"")
+          enters  (set/difference (set incoming) (set outgoing))
+          exits   (set/difference (set outgoing) (set incoming))
+          updates (set/difference (set incoming) (set enters))
+     ;; create objects for building statements
+         update-group  (map-indexed
+                       (fn [idx ch]
+                         (let [
+                               elem {:class (if (set/subset? ch enters) "enter" "update")
+                                     :y 0
+                                     :fill-opacity 1
+                                     :x (* idx 15)
+                                     :text ch
+                                     :i idx}]
+                           elem))
+                       incoming )
+         dispatch-list (map #(:dispatch [:letter-update % ]) update-group)
+         ]
+     (concat {:dispatch [:alphabet  a]}
+             dispatch-list)
+     )))
+;; untested
+
 
 (defn d3-inner-l [d]
   (reagent/create-class
@@ -103,35 +228,7 @@
     }))
 
 
-;; define your app data so that it doesn't get over-written on reload
-;;---- Event handlers-----------
-(register-handler
-  :initialize-db
-  (fn
-    [_ _]
-    app-state))
 
-(register-handler
-  :update
-  (fn
-    [db [_ idx param val]]
-    ;;(println "idx " idx "param " param "val " val)
-    (assoc-in db [:circles idx param ] val)))
-
-(register-handler
-  :enter-letter
-  (fn
-    [db [_ key valhash]]
-    (println "try to load in db:  key " key  "val " valhash)
-    (assoc-in db [:letts key] valhash)
-    ))
-
-(register-handler
-  :exit-letter
-  (fn
-    [db [_ idx]]
-    (println "exit letter " idx )
-    (dissoc db [:letts idx ])))
 
 
 
@@ -150,9 +247,28 @@
       (dispatch [:alphabet lettres])))
   )
 
-(register-handler
-  :alphabet
-  (fn
+;; experimenting and learning interceptors
+(def trim-event
+  (re-frame.core/->interceptor
+    :id      :trim-event
+    :before  (fn [context]
+               (let [trim-fn (fn [event] (-> event rest vec))]
+                 (update-in context [:coeffects :event] trim-fn)))))
+
+(defn db-handler->interceptor
+  [db-handler-fn]
+  (re-frame.core/->interceptor     ;; a utility function supplied by re-frame
+    :id     :db-handler            ;; ids are decorative only
+    :before (fn [context]
+              (let [{:keys [db event]} (:coeffects context)    ;; extract db and event from coeffects
+                    new-db (db-handler-fn db event)]           ;; call the handler
+                (assoc-in context [:effects :db] new-db)))))) ;; put db back into :effects
+
+(reg-event-db
+ :alphabet-change
+ [trim-event intercept-letters]
+  (fn [db v] ...
+    {:db (assoc db :alphabet )}
     [db [_ vals]]
     (println (str ":alphabet dispatcher handling " vals))
     (let [incoming (sort (set vals))
