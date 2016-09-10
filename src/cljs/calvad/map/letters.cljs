@@ -43,7 +43,6 @@
                       :r 30
                       :color "blue"}]
                 :letters (sorted-map)
-                :alphabet ""
                 :active {} ;; for which grid cell clicked
                 })
 
@@ -123,9 +122,9 @@
  (fn [oldalpha [newalpha]]
    ;; 1st argument is coeffects, instead of db
    ;; endeavor to make a list of letter updates to dispatch
-
-   (let [incoming (str/split newalpha #"")
-         outgoing (str/split (:db oldalpha) #"")
+   (println "handling " newalpha " removing " oldalpha)
+   (let [incoming newalpha
+         outgoing oldalpha
           enters  (set/difference (set incoming) (set outgoing))
           exits   (set/difference (set outgoing) (set incoming))
           updates (set/difference (set incoming) (set enters))
@@ -141,20 +140,16 @@
                                      :i idx}]
                            elem))
                        incoming )
-         dispatch-list (map (fn [d] {:dispatch [:letter-update d]}) update-group)
-         exit-list (map (fn [d] {:dispatch [:letter-exit d ]}) exits)
+         event-list (concat [:alphabet  newalpha]
+                            (map (fn [d] ([:letter-update d])) update-group)
+                            (map (fn [d] ([:letter-exit d ])) exits))
          ]
-     (println outgoing)
-     (println incoming)
-     (println exits)
-     (println dispatch-list)
-     ;;(println
-     (concat {:dispatch [:alphabet  newalpha]}
-             dispatch-list
-             exit-list)
-     ;;)
-
+     {:dispatch-n event-list
+                         ;;(list [:alphabet newalpha]
+                         ;;[:letter-update (first update-group)])
+                         }
      )))
+
 ;; untested
 
 
@@ -162,7 +157,7 @@
   (reagent/create-class
    {:reagent-render (fn [d]
                       (println "rendering a letter with " d)
-                      [:text d (:d d) ])
+                      [:text d (:text d) ])
     :display-name  "my-letter-component"  ;; for more helpful warnings & errors
     :component-will-update
     (fn [this new-argv] ;; fn[this new-argv]
@@ -205,12 +200,12 @@
                                    (duration 750)
                                    (ease js/d3.easeCubicInOut))
                                  ]
-                             (println "update a letter with " d3data )
+                             (println "did mount handler a letter with " d3data )
 
                              (.. node
                                  (attr "class" class)
                                  (attr "y" y)
-                                 (text d)
+                                 (text (.-text d3data))
                                  ;;(transition t)
                                  (attr "x" x)
                                  ))
@@ -369,8 +364,12 @@
  :letter
  (fn [query-v _]
    (subscribe [:sorted-letters]))
- (fn [sorted-letters query-v _]
-   (get sorted-letters query-v)))
+ (fn [sorted-letters [_ query-v] _]
+   (println sorted-letters)
+   (println query-v)
+   (let [res (get sorted-letters query-v)]
+     (println res)
+        res)))
 
 ;; circles using d3 controllers
 (defn d3-inner [data]
@@ -462,7 +461,8 @@
                             texts (doall(map
                                     (fn [ch]
                                       (let [sub (subscribe [:letter ch])]
-                                        ^{:key ch} [d3-inner-l @sub]))
+                                        ^{:key ch} [d3-inner-l @sub
+                                                    ]))
                                     data))
                             ]
                         [:div.letters
@@ -522,7 +522,7 @@
 
 (defn app [gridtopo]
     (let [data (subscribe [:circles])
-          datal (subscribe [:sorted-letters])
+          datal (subscribe [:letters])
           active (subscribe [:active])
           ;;datablob (subscribe [:datablob])
           ]
