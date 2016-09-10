@@ -18,7 +18,7 @@
 (enable-console-print!)
 (println "Edits to this text should show up in your developer console.")
 
-(def alphabet (str/split "abcdefghijklmnopqrstuvwxyz" #""))
+(def alphabet (rest (str/split "abcdefghijklmnopqrstuvwxyz" #"")))
 
 (def app-state {:circles [{:name "circle 1"
                       :x 10
@@ -58,7 +58,7 @@
             y (:y newdata)
             i (:i newdata)
             class (:class newdata)
-            fill-opacity (:fill-opacity d3data)
+            fill-opacity (:fill-opacity newdata)
             t (.. (js/d3.transition.)
                   (duration 750)
                   (ease js/d3.easeCubicInOut))
@@ -68,6 +68,7 @@
         (.. node
                 (attr "class" class)
                 (attr "y" y)
+                (text (:d newdata))
                 ;;(transition t)
                 (attr "x" x)
                 ))
@@ -75,9 +76,30 @@
     :component-did-update (fn [this]
                             ;;(println "letter component updated")
                             )
-    :component-did-mount (fn []
-                           ;;(println "letter component mounted")
+    :component-did-mount (fn [this]
+                           (let [d3data (clj->js d)
+                             ;; verify position and text
+                             node (.select js/d3 (rdom/dom-node this))
+                             x (.-x d3data)
+                             y (.-y d3data)
+                             d (.-d d3data)
+                             class (.-class d3data)
+                             fill-opacity (.-fill-opacity d3data)
+                             t (.. (js/d3.transition.)
+                                   (duration 750)
+                                   (ease js/d3.easeCubicInOut))
+                                 ]
+                             (println "update a letter with " d3data )
+
+                             (.. node
+                                 (attr "class" class)
+                                 (attr "y" y)
+                                 (text d)
+                                 ;;(transition t)
+                                 (attr "x" x)
+                                 ))
                            )
+
     }))
 
 
@@ -97,17 +119,10 @@
     (assoc-in db [:circles idx param ] val)))
 
 (register-handler
-  :update-letter
-  (fn
-    [db [_ idx val]]
-    (println "update letter " idx " vals " val)
-    (assoc-in db [:letts idx ] val)))
-
-(register-handler
   :enter-letter
   (fn
     [db [_ key valhash]]
-    ;;(println "try to load in db:  key " key  "val " valhash)
+    (println "try to load in db:  key " key  "val " valhash)
     (assoc-in db [:letts key] valhash)
     ))
 
@@ -125,55 +140,66 @@
   (fn
     [db [_ ]]
     ;;(println "shuffle and cut")
-    (let [lettres (random-sample
+    (let [lettres (clj->js (random-sample
                    0.5
-                   (.shuffle js/d3 (clj->js alphabet))
-                   )]
-      ;;(println lettres)
-      (assoc-in db [:alphabet] lettres)))
+                   ;;(.shuffle js/d3 (clj->js
+                   alphabet
+                   ;;))
+                   ))]
+      (println db)
+      (dispatch [:alphabet lettres])))
   )
 
 (register-handler
   :alphabet
   (fn
     [db [_ vals]]
-    (println (str "handling " vals))
-    (let [current  (set (keys (doall (get-in db [:letts]))))
-          enters (doall (set/difference (set vals) current))
-          exits  (doall (set/difference current vals))
-          updates (doall (set/difference (set vals) (doall enters)))
+    (println (str ":alphabet dispatcher handling " vals))
+    (let [incoming (sort (set vals))
+          current  (set (sort (keys (:letts db))))
+          enters (doall (set/difference incoming current))
+          exits  (doall (set/difference current incoming))
+          updates (doall (set/difference (set incoming) (doall enters)))
           ]
-      (assoc-in db [:alphabet] vals)
+      (println "previous" (sort current) "new" incoming)
+      (println "enters " enters "exits " exits )
+      (println db)
       ;; ;; also modify individual letters
-      (let [delete-group (doall (map #(dispatch [:exit-letter %]) exits))
+      (let [;;delete-group (doall (map #(dispatch [:exit-letter (keyword %)]) exits))
             enter-group  (doall (map-indexed
-                                 (fn [idx ch]
-                                   (let [
-                                         elem {:class "enter"
-                                               :y 0
-                                               :fill-opacity 1
-                                               :x (* idx 15)
-                                               :d ch
-                                               :i idx}]
-                                     (dispatch [:enter-letter ch elem]
-                                               )))
+                          (fn [idx ch]
+                            (let [
+                                  elem {:class "enter"
+                                        :y 0
+                                        :fill-opacity 1
+                                        :x (* idx 15)
+                                        :d ch
+                                        :i idx}]
+                                     elem))
                                  enters ))
             update-group (doall (map-indexed
-                                 (fn [idx ch]
-                                   (let [
-                                         elem {:class "update"
-                                               :y 0
-                                               :fill-opacity 1
-                                               :x (* idx 15)
-                                               :d ch
-                                               :i idx}]
-                                     (dispatch [:enter-letter ch elem]
-                                               )))
-                                 updates ))
-            ])
+                          (fn [idx ch]
+                            (let [
+                                  elem {:class "update"
+                                        :y 0
+                                        :fill-opacity 1
+                                        :x (* idx 15)
+                                        :d ch
+                                        :i idx}]
+                              ))
+                          updates ))
+
+            ]
+        (for [e enter-group]
+          (dispatch [:enter-letter (keyword (:d e)) e]))
+
+
+        ;;(concat enter-group update-group)))
+
+        )
       )))
 
-(dispatch [:alphabet (clj->js alphabet)])
+;;(dispatch [:shuffle])
 
 (register-handler
   :active
@@ -295,9 +321,12 @@
       ;;      (dispatch [:alphabet (js->clj (sort new-alpha))]))
       ;;    )
       ;;  1500)
-      (dispatch [:alphabet (random-sample
-                            0.5
-                            (.shuffle js/d3 (clj->js alphabet)))]))
+
+
+      ;; (dispatch [:alphabet (random-sample
+      ;;                       0.5
+      ;;                       alphabet)])
+      )
 
     :display-name "letters"
 
@@ -306,17 +335,17 @@
                       (let [d3data (clj->js data)
                             t (.. (js/d3.transition.)
                                   (duration 750))
+                            texts (doall
+                                   (map
+                                    (fn [ch]
+                                      (let [sub (subscribe [:letts ch])]
+                                        ^{:key ch} [d3-inner-l @sub]))
+                                    data))
                             ]
                         [:div.letters
                          [:svg {:class "letters" :width 500 :height 124}
                           [:g {:transform  "translate(15,62)"}
-                           (println "alphabet render, iterating over letters")
-                           (doall
-                            (map
-                             (fn [ch]
-                               (let [sub (subscribe [:letts ch])]
-                                 ^{:key ch} [d3-inner-l @sub]))
-                             data))
+                           texts
                            ]]]
                         ))
 
@@ -349,6 +378,9 @@
   [:input {:type "button"
            :on-click #(dispatch [:shuffle])}])
 
+
+;; (for [todo  @visible-todos]
+;;   ^{:key (:id todo)} [todo-item todo])
 
 (defn sliders [data]
     [:div (for [[idx d] (map-indexed vector data)]
