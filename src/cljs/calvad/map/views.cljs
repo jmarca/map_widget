@@ -40,6 +40,7 @@
 
         (.. node
                 (attr "class" class)
+                (style "fill-opacity" fill-opacity)
                 (transition t)
                 (attr "x" x)
                 (attr "y" y)
@@ -47,10 +48,37 @@
                 ))
         ))
 
+;; doesn't work.  Letter is already gone on rendering this
+(defn- letter-remove
+  ([comp]
+   (let [
+         data  (-> comp reagent/props )  ; use props
+         d3data (clj->js data)
+         node (.select js/d3 (rdom/dom-node comp))
+         x (.-x d3data)
+         y 20
+         txt (.-text d3data)
+         class (.-class d3data)
+         fill-opacity 0.0001
+         t (.. (js/d3.transition.)
+               (duration 750)
+               (ease js/d3.easeCubicInOut))
+         ]
+     ;;(println "will update a letter with " d3data )
+     (println "removing " d3data)
+
+        (.. node
+                (attr "class" class)
+                (transition t)
+                (attr "y" y)
+                ;;(style "fill-opacity" fill-opacity)
+                ))
+        ))
+
 (defn d3-inner-l [data]
   (reagent/create-class
    {:reagent-render (fn [data]
-                      (println "rendering" data)
+                      ;;(println "rendering" data)
                       (let [y (if (= "enter" (:class data)) -20 0)]
                         [:text {:y y}]))
     :display-name  "my-letter-component"  ;; for more helpful warnings & errors
@@ -61,7 +89,8 @@
     ;; :component-will-update letter-render
     :component-did-mount letter-render
     :component-did-update letter-render
-    :component-will-unmount (fn [this] (println "did unmount a letter"))
+    ;; doesn't work
+    ;; :component-will-unmount letter-remove
     }))
 
 
