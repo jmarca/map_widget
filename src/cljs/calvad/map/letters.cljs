@@ -163,12 +163,40 @@
 (defn d3-inner-l [d]
   (reagent/create-class
    {:reagent-render (fn [d]
-                      (println "rendering a letter with " d)
-                      [:text d (:text d) ])
+                      (let [y (if (= "enter" (:class d)) -20 20)]
+                        ;;(println "rendering a letter with " d)
+                        [:text (assoc-in d [:y] y) (:text d) ]))
     :display-name  "my-letter-component"  ;; for more helpful warnings & errors
-    :component-will-update (fn [this]
-                            (println "letter component will update")
-                            )
+    ;; will update doesn't work for me...puts the component in the
+    ;; wrong position, which means it is likely getting the old
+    ;; params, not the new ones.
+    ;; also, it seems we're always re-rendering, which tendds to stop
+    ;; up the animation below unless I click quickly on the button
+    ;;
+    ;; :component-will-update
+    ;; (fn [this new-argv] ;; fn[this new-argv]
+    ;;   (let [[_ newdata] (reagent/argv this)
+    ;;         d3data (clj->js newdata)
+    ;;         ;; moving position, have something to do
+    ;;         node (.select js/d3 (rdom/dom-node this))
+    ;;         x (.-x d3data)
+    ;;         y (.-y -50)
+    ;;         d (.-d d3data)
+    ;;         class (.-class d3data)
+    ;;         fill-opacity (.-fill-opacity d3data)
+    ;;         t (.. (js/d3.transition.)
+    ;;               (duration 750)
+    ;;               (ease js/d3.easeCubicInOut))
+    ;;         ]
+    ;;     ;;(println "will update a letter with " d3data )
+
+    ;;     (.. node
+    ;;             (attr "class" class)
+    ;;             (transition t)
+    ;;             (attr "y" y)
+    ;;             (attr "x" x)
+    ;;             ))
+    ;;     )
 
     :component-did-update
     (fn [this new-argv] ;; fn[this new-argv]
@@ -176,47 +204,46 @@
             d3data (clj->js newdata)
             ;; moving position, have something to do
             node (.select js/d3 (rdom/dom-node this))
-            x (:x newdata)
-            y (:y newdata)
-            i (:i newdata)
-            class (:class newdata)
-            fill-opacity (:fill-opacity newdata)
+            x (.-x d3data)
+            y (.-y d3data)
+            d (.-d d3data)
+            class (.-class d3data)
+            fill-opacity (.-fill-opacity d3data)
             t (.. (js/d3.transition.)
                   (duration 750)
                   (ease js/d3.easeCubicInOut))
             ]
-        (println "update a letter with " newdata )
+        ;;(println "will update a letter with " d3data )
 
         (.. node
                 (attr "class" class)
-                (attr "y" y)
-                (text (:d newdata))
-                ;;(transition t)
+                (transition t)
                 (attr "x" x)
+                (attr "y" y)
                 ))
         )
     :component-did-mount (fn [this]
-                           ;; (let [d3data (clj->js d)
-                           ;;   ;; verify position and text
-                           ;;   node (.select js/d3 (rdom/dom-node this))
-                           ;;   x (.-x d3data)
-                           ;;   y (.-y d3data)
-                           ;;   d (.-d d3data)
-                           ;;   class (.-class d3data)
-                           ;;   fill-opacity (.-fill-opacity d3data)
-                           ;;   t (.. (js/d3.transition.)
-                           ;;         (duration 750)
-                           ;;         (ease js/d3.easeCubicInOut))
-                           ;;       ]
-                             (println "did mount handler a letter");;" with " d3data )
+                           (let [d3data (clj->js d)
+                             ;; animate drop down position and text
+                             node (.select js/d3 (rdom/dom-node this))
+                             x (.-x d3data)
+                             y (.-y d3data)
+                             d (.-d d3data)
+                             class (.-class d3data)
+                             fill-opacity (.-fill-opacity d3data)
+                             t (.. (js/d3.transition.)
+                                   (duration 750)
+                                   (ease js/d3.easeCubicInOut))
+                                 ]
+                             ;;(println "did mount handler a letter")" with " d3data )
 
-                             ;; (.. node
-                             ;;     (attr "class" class)
-                             ;;     (attr "y" y)
-                             ;;     (text (.-text d3data))
-                             ;;     ;;(transition t)
-                             ;;     (attr "x" x)
-                             ;;     ))
+                             (.. node
+                                 (attr "class" class)
+                                 (transition t)
+                                 (attr "y" y)
+                                 (transition t)
+                                 (attr "x" x)
+                                 ))
                            )
     :component-will-unmount (fn [this] (println "did unmount a letter"))
     }))
@@ -233,9 +260,9 @@
     ;;(println "shuffle and cut")
     (let [lettres (random-sample
                    0.5
-                   ;;(.shuffle js/d3 (clj->js
+                   (.shuffle js/d3 (clj->js
                    alphabet
-                   ;;))
+                   ))
                    )]
       (println lettres)
       (dispatch [:alphabet-letters lettres])
