@@ -4,7 +4,7 @@
 
  :dependencies '[
                  [org.clojure/clojure "1.8.0"]         ;; add CLJ
-                 [org.clojure/clojurescript "1.9.89"] ;; add CLJS, but not 1.9.93
+                 [org.clojure/clojurescript "1.9.89"] ;; .89 works.  trying 216.  add CLJS, but not 1.9.93
                  [adzerk/boot-cljs "1.7.228-1"]
                  [pandeiro/boot-http "0.7.3"]
                  [adzerk/boot-reload "0.4.12"]
