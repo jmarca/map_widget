@@ -124,7 +124,7 @@
    ;; endeavor to make a list of letter updates to dispatch
    (println "handling " newalpha " removing " oldalpha)
    (let [incoming newalpha
-         outgoing oldalpha
+         outgoing (:db oldalpha)
           enters  (set/difference (set incoming) (set outgoing))
           exits   (set/difference (set outgoing) (set incoming))
           updates (set/difference (set incoming) (set enters))
@@ -140,15 +140,22 @@
                                      :i idx}]
                            elem))
                        incoming )
-         event-list (concat [:alphabet  newalpha]
-                            (map (fn [d] ([:letter-update d])) update-group)
-                            (map (fn [d] ([:letter-exit d ])) exits))
+         disp (if (> (count exits) 0 )
+                {:dispatch-n (concat (vector [:alphabet  newalpha])
+                                     (concat (mapv (fn [d] (vector :letter-update d )) update-group)
+                                             (mapv (fn [d] (vector :letter-exit d )) exits)
+                                     ))}
+                {:dispatch-n (concat (vector [:alphabet  newalpha])
+                                     (mapv (fn [d] (vector :letter-update d )) update-group)
+                                     ;;(map (fn [d] (vector :letter-exit d )) exits)
+                                     )}
+                )
+
          ]
-     {:dispatch-n event-list
-                         ;;(list [:alphabet newalpha]
-                         ;;[:letter-update (first update-group)])
-                         }
-     )))
+     (println "updates" update-group)
+     (println "exits" exits)
+     (println disp)
+     disp)))
 
 ;; untested
 
@@ -159,7 +166,11 @@
                       (println "rendering a letter with " d)
                       [:text d (:text d) ])
     :display-name  "my-letter-component"  ;; for more helpful warnings & errors
-    :component-will-update
+    :component-will-update (fn [this]
+                            (println "letter component will update")
+                            )
+
+    :component-did-update
     (fn [this new-argv] ;; fn[this new-argv]
       (let [[_ newdata] (reagent/argv this)
             d3data (clj->js newdata)
@@ -184,33 +195,30 @@
                 (attr "x" x)
                 ))
         )
-    :component-did-update (fn [this]
-                            ;;(println "letter component updated")
-                            )
     :component-did-mount (fn [this]
-                           (let [d3data (clj->js d)
-                             ;; verify position and text
-                             node (.select js/d3 (rdom/dom-node this))
-                             x (.-x d3data)
-                             y (.-y d3data)
-                             d (.-d d3data)
-                             class (.-class d3data)
-                             fill-opacity (.-fill-opacity d3data)
-                             t (.. (js/d3.transition.)
-                                   (duration 750)
-                                   (ease js/d3.easeCubicInOut))
-                                 ]
-                             (println "did mount handler a letter with " d3data )
+                           ;; (let [d3data (clj->js d)
+                           ;;   ;; verify position and text
+                           ;;   node (.select js/d3 (rdom/dom-node this))
+                           ;;   x (.-x d3data)
+                           ;;   y (.-y d3data)
+                           ;;   d (.-d d3data)
+                           ;;   class (.-class d3data)
+                           ;;   fill-opacity (.-fill-opacity d3data)
+                           ;;   t (.. (js/d3.transition.)
+                           ;;         (duration 750)
+                           ;;         (ease js/d3.easeCubicInOut))
+                           ;;       ]
+                             (println "did mount handler a letter");;" with " d3data )
 
-                             (.. node
-                                 (attr "class" class)
-                                 (attr "y" y)
-                                 (text (.-text d3data))
-                                 ;;(transition t)
-                                 (attr "x" x)
-                                 ))
+                             ;; (.. node
+                             ;;     (attr "class" class)
+                             ;;     (attr "y" y)
+                             ;;     (text (.-text d3data))
+                             ;;     ;;(transition t)
+                             ;;     (attr "x" x)
+                             ;;     ))
                            )
-
+    :component-will-unmount (fn [this] (println "did unmount a letter"))
     }))
 
 
