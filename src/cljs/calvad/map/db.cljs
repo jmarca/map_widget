@@ -19,25 +19,21 @@
 ;; strictly necessary. It could be omitted. But we find it good
 ;; practice.
 
-(s/def ::i int?)
-(s/def ::x int?)
-(s/def ::y int?)
-(s/def ::text string?)
-(s/def ::class string?)
-(s/def ::letter (s/keys :req-un [::class ::y ::x ::text ::i ::fill-opacity]))
-(s/def ::letters (s/and                               ;; should use the :kind kw to s/map-of (not supported yet)
-                 (s/map-of ::text ::letter)             ;; in this map, each todo is keyed by its :text
+(s/def ::i int?) ;; i of cell
+(s/def ::j int?) ;; j of cell
+(s/def ::cellid string?) ;; cell id, equal to the i and j
+(s/def ::class string?) ;; not sure if necessary, but the class of the shape
+(s/def ::d string?) ;; the shape string
+(s/def ::cell (s/keys :req-un [::i ::j ::cellid ::d]))
+(s/def ::grid (s/and                               ;; should use the :kind kw to s/map-of (not supported yet)
+                 (s/map-of ::cellid ::cell)             ;; in this map, each todo is keyed by its :text
                  #(instance? PersistentTreeMap %)   ;; is a sorted-map (not just a map)
                  ))
-(s/def ::alphabet (s/coll-of string? :distinct true))     ;; keep track of whole string here
-
-
-(s/def ::db (s/keys :req-un [::letters ::alphabet]))
+(s/def ::db (s/keys :req-un [::grid]))
 
 ;; -- Default app-db Value  ---------------------------------------------------
 ;;
 ;; When the application first starts, this will be the value put in app-db
 
-(def initial-state {:letters (sorted-map) ;; the letters to display
-                    :alphabet [] ;; the same as above, but easier to manage
+(def initial-state {:grid ;; the map to draw
                     })
