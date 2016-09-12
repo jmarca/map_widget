@@ -28,7 +28,7 @@
                  (s/map-of ::text ::letters)             ;; in this map, each todo is keyed by its :text
                  #(instance? PersistentTreeMap %)   ;; is a sorted-map (not just a map)
                  ))
-(s/def ::alphabet (s/coll-of string? []));; :kind vector? :distinct true))     ;; keep track of whole string here
+(s/def ::alphabet (s/coll-of string? :kind vector? :distinct true))     ;; keep track of whole string here
 
 
 (s/def ::db (s/keys :req-un [::letters ::alphabet]))
