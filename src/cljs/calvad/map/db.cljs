@@ -22,13 +22,14 @@
 (s/def ::i int?)
 (s/def ::x int?)
 (s/def ::y int?)
+(s/def ::text string?)
 (s/def ::class string?)
 (s/def ::letter (s/keys :req-un [::class ::y ::x ::text ::i ::fill-opacity]))
 (s/def ::letters (s/and                               ;; should use the :kind kw to s/map-of (not supported yet)
-                 (s/map-of ::text ::letters)             ;; in this map, each todo is keyed by its :text
+                 (s/map-of ::text ::letter)             ;; in this map, each todo is keyed by its :text
                  #(instance? PersistentTreeMap %)   ;; is a sorted-map (not just a map)
                  ))
-(s/def ::alphabet (s/coll-of string? :kind vector? :distinct true))     ;; keep track of whole string here
+(s/def ::alphabet (s/coll-of string? :distinct true))     ;; keep track of whole string here
 
 
 (s/def ::db (s/keys :req-un [::letters ::alphabet]))

@@ -25,14 +25,14 @@
 
 
 ;; the chain of interceptors we use for all handlers that manipulate letters
-(def letter-interceptors [;;check-spec-interceptor               ;; ensure the spec is still valid
+(def letter-interceptors [check-spec-interceptor               ;; ensure the spec is still valid
                           (path :letters)                        ;; 1st param to handler will be the value from this path
                           ;;->local-store                        ;; write todos to localstore
                           debug                                  ;; look in your browser console for debug logs
                           trim-v])                               ;; removes first (event id) element from the event vec
 
 ;; the chain of interceptors we use for all handlers that manipulate the alphabet
-(def alphabet-interceptors [;;check-spec-interceptor             ;; ensure the spec is still valid
+(def alphabet-interceptors [check-spec-interceptor             ;; ensure the spec is still valid
                           (path :alphabet)                       ;; 1st param to handler will be the value from this path
                           ;;->local-store                        ;; write todos to localstore
                           debug                                  ;; look in your browser console for debug logs
@@ -60,7 +60,7 @@
 
 (reg-event-db                 ;; setup initial state
   :initialize-db                     ;; usage:  (dispatch [:initialize-db])
-;;  [check-spec-interceptor]
+  [check-spec-interceptor]
   (fn
     [db _]
     (merge db initial-state)))    ;; what it returns becomes the new state
