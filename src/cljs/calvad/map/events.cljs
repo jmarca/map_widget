@@ -71,6 +71,7 @@
 ;;       (assoc-in grid [id :data] value))))
 
 
+
 (reg-event-db
  :update-path
  (fn
@@ -136,13 +137,14 @@
 
 ;; a handler to accept the topojson doc from the server
 
-(reg-event-db
+(reg-event-fx
  :process-topojson
 ;; [debug]
   (fn
-    [db [_ response dims]]   ;; destructure the response from the event vector
+    [cofx [_ response dims]]   ;; destructure the response from the event vector
     (println "handling topojson")
     (let [
+          db (:db cofx)
           ;;allgeoms (.geometries (.grids (.objects response)))
           allgeoms (.-geometries (.-grids (.-objects response)))
           land (.. js/topojson
@@ -178,7 +180,7 @@
           ]
       ;;
 
-      (merge db {:land land
+      {:db (merge db {:land land
                  :path path
                  :grid (into (sorted-map)
                              ;; map each of grid cells into the right slot
@@ -187,8 +189,20 @@
                                           ]
                                       [id feat]))
                                   land-features ))})
+       :dispatch [:not-loading]}
 
       )))
+
+
+(defn colorit
+  [v]
+  (let [c (.. js/d3
+             (scalePow.)
+             (exponent 0.3)
+             (domain (clj->js [0 1744422]))
+             (range (clj->js [0 1])))]
+    (.interpolateViridis js/d3 (c v))))
+
 
 (reg-event-db
  :process-hpmsjson
@@ -198,13 +212,19 @@
    (println "handling hpmsjson")
 
    (let [griddb (:grid db)
+         colorkey (:colorkey db)
          incoming (into
                    (sorted-map)
                    (map (fn [record]
                           (let [id (str (.-cell_i  record)
                                         "_"
-                                        (.-cell_j record )) ]
-                            [id record])) ;; if use merge-with, need :hpms here
+                                        (.-cell_j record ))
+                                data-value (aget record colorkey)
+                                color (colorit data-value)
+                                ]
+
+                            [id {:hpms record
+                                 :color color} ]))
                         json))
          ;; Need to handle the case in which there is an old entry, but no new one.
          ;; One issue I'm not handling right now is if there is a grid
@@ -228,18 +248,17 @@
                   (map (fn [idx]
                          (let [oldr (get griddb idx)
                                newr (get incoming idx)]
-
-                           ;;(println oldr)
-                           ;;(println newr)
-
-                           [idx (merge oldr {:hpms newr})]
-                           ))
+                           (if (and (not (nil? (:hpms oldr)))
+                                    (= (:hpms oldr) (:hpms newr)))
+                             [idx oldr]
+                             [idx (merge oldr newr)]
+                             )))
                        newk ;; iterate over incoming keys
                          ))
          exits (into
                 (sorted-map)
                 (map (fn [idx]
-                       [idx (dissoc (get griddb idx) :hpms) ])
+                       [idx (dissoc (get griddb idx) [:hpms :color]) ])
                        exit ;; iterate over exiting keys
                        ))
 
@@ -249,17 +268,32 @@
      ;;(println (first updates))
      ;;(println (first exits))
      ;;(println (first updatedgrid))
-     ;; (println "current:" (get griddb (first newk)))
-     ;; (println "revised:" (get updatedgrid (first newk)))
+     ;;(println "current:" (get griddb (first newk)))
+     ;;(println "revised:" (get updatedgrid (first newk)))
      (merge db {:grid updatedgrid})
      ;;db
      )))
+
+
+(reg-event-db
+ :set-colorkey
+ (fn
+   [db [_ key-to-use]]
+   (assoc-in db [:colorkey] key-to-use)))
+
 
 (reg-event-db
  :not-loading
  (fn
    [db _]
    (dissoc db :loading?)))
+
+
+(reg-event-db
+ :loading
+ (fn
+   [db _]
+   (assoc db :loading? true)))
 
 (reg-event-fx
  :get-hpmsdata
@@ -271,4 +305,4 @@
               (println "json fetch error " e)
               (dispatch [:process-hpmsjson j]))
             (dispatch [:not-loading])))
-   {:db  (assoc db :loading? true)}))
+   {:dispatch [:loading]}))

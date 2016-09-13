@@ -40,6 +40,7 @@
 
   (def initial-state {:grid (sorted-map);; the map to draw
                       :active "1-2" ;; a fake active cell id
-                      :land nil ;; the land,
+                      :colorkey "sum_vmt"
+                      :land nil ;; the land
                       :path nil ;; curse your inevitable betrayal
                     })

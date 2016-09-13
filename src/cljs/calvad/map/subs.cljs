@@ -63,3 +63,9 @@
  :active
   (fn [db _]        ;; db is the value in app-db
    (:active db)))   ;; a value, not a ratom, not a reaction.
+
+;; this subscription gets loading or not
+(reg-sub
+ :loading
+  (fn [db _]        ;; db is the value in app-db
+   (:loading? db)))   ;; a value, not a ratom, not a reaction.

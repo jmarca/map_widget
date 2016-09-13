@@ -56,3 +56,8 @@ div.container div.row {
 .grid.active:hover {
     fill: #e4f;
 }
+
+button:disabled {
+    background-color:#999;
+    text-color:#444;
+}

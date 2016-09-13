@@ -22,16 +22,6 @@
 ;; :reagent-render (fn [args....])   ;; or :render (fn [this])
 ;; }
 
-
-(defn colorit
-  [v]
-  (let [c (.. js/d3
-             (scalePow.)
-             (exponent 0.3)
-             (domain (clj->js [0 1744422]))
-             (range (clj->js [0 1])))]
-    (.interpolateViridis js/d3 (c v))))
-
 ;; Individual grid cell rendering
 
 ;; helper function
@@ -47,16 +37,7 @@
          ]
      ;;(println "processing " (.-cellid d3data))
      (.. node
-         ;; skip class for now unless I need it.  will make "active"
-         ;; more complicated to handle
-         ;;
-         ;; (attr "class"
-         ;;       (fn [d i]
-         ;;         (str "grid " (.-cellid d3data))
-         ;;         ))
          (attr "d" gridpath)
-         ;; (on "click" clicked) ;; "clicked" isn't yet defined, and not sure yet how I want to do this
-
          )
      )))
 
@@ -75,23 +56,16 @@
     (reagent/create-class
      {:reagent-render (fn [data active]
 ;;                        (println "rendering " data ", active " active)
-                        (let [active (if (= active (:cellid data)) "active" "inactive")
+                        (let [active (if (= active (:cellid data)) " active" "")
                               d (:svgpath data)
-                              class (str "grid " active)
-                              [_ hpms] (find data :hpms)
-                              c (if (nil? hpms)
+                              class (str "grid" active)
+                              [_ color] (find data :color)
+                              c (if (nil? color)
                                   {:class class :d d}
                                   ;; else, have vmt, so color it so
-                                  (do
-                                    (let [
-                                          vmt (.-sum_vmt hpms)
-                                          color (colorit vmt)
-                                          ]
-                                      {
-                                       :class class
-                                       :d d
-                                       :style {:fill color}
-                                       })))
+                                  {:class class :d d
+                                   :style {:fill color}
+                                   })
                               ]
                           [:path c ]
                           )
@@ -203,14 +177,15 @@
 (defn app
   [width height]
   (let [datal (subscribe [:grid-ids])
-        datab (subscribe [:land])]
+        datab (subscribe [:land])
+        loading (subscribe [:loading])]
     (fn []
       [:div {:class "container"}
        [:div {:class "row"}
         [:div {:class "col mapapp"}
          [map-of-grids @datal @datab width height]]
         [:div {:class "col mapcontrol"}
-         [clickr]]
+         [clickr @loading]]
         ]
        ]
       )))

@@ -21,6 +21,7 @@
 
 (defn ^:export main [json-file]
   (dispatch-sync [:initialize-db])
+  (dispatch [:loading])
   (.json js/d3 json-file
          (fn [error json]
            (if (not (nil? error))
