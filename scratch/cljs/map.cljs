@@ -107,7 +107,7 @@
         ;;(attr "x1" #(.. % -source -x))
         (dispatch [:active {:element e}])
         )))
-    (reagent/create-class
+  (reagent/create-class
      {:reagent-render (fn [] [:div.map
                               [:svg {:width 500 :height 500}
                                ;; [:rect {:class "background"

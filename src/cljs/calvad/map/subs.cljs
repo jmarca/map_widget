@@ -4,26 +4,24 @@
 
 ;;---- Subscription handlers-----------
 
-(reg-sub
-  :alphabet
-  (fn
-    [db _]
-    (reaction (:alphabet @db))))
-
 ;; two step registration of a subscription
-(defn sorted-letters
+(defn sorted-grids
   [db _]
-  (:letters db))
-(reg-sub :sorted-letters sorted-letters)
+  (:grid db))
 
+;; sorted grids subscription gets all the grids
+(reg-sub :sorted-grids sorted-grids)
+
+;; grid ids gets just the ids for the sorted grids, so you can get the
+;; grid data only
 (reg-sub
- :letters
+ :grid-ids
   ;; Although not required in this example, it is called with two paramters
   ;; being the two values supplied in the originating `(subscribe X Y)`.
   ;; X will be the query vector and Y is an advanced feature and out of scope
   ;; for this explanation.
  (fn [query-v _]
-   (subscribe [:sorted-letters]))    ;; returns a single input signal
+   (subscribe [:sorted-grids]))    ;; returns a single input signal
 
   ;; This 2nd fn does the computation. Data values in, derived data
   ;; out.  It is the same as the two simple subscription handlers up
@@ -37,13 +35,31 @@
   ;; for this discussion.
 
  ;; but query isn't used here
- (fn [sorted-letters query-v _]
-    (keys sorted-letters)))
+ (fn [sorted-grids query-v _]
+    (keys sorted-grids)))
 
-;; this subscription gets individual letters.  Here query is used
+;; this subscription gets individual grid cells.  Here query *is* used
 (reg-sub
- :letter
+ :grid
  (fn [query-v _]
-   (subscribe [:sorted-letters]))
- (fn [sorted-letters [_ query-v] _]
-   (get sorted-letters query-v)))
+   (subscribe [:sorted-grids]))
+ (fn [sorted-grids [_ query-v] _]
+   (get sorted-grids query-v)))
+
+;; this subscription gets topojson from db
+(reg-sub
+ :land
+  (fn [db _]        ;; db is the value in app-db
+   (:land db)))   ;; a value, not a ratom, not a reaction.
+
+;; this subscription gets path from db
+(reg-sub
+ :path
+  (fn [db _]        ;; db is the value in app-db
+   (:path db)))   ;; a value, not a ratom, not a reaction.
+
+;; this subscription gets which cell is active
+(reg-sub
+ :active
+  (fn [db _]        ;; db is the value in app-db
+   (:active db)))   ;; a value, not a ratom, not a reaction.

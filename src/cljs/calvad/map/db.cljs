@@ -22,18 +22,24 @@
 (s/def ::i int?) ;; i of cell
 (s/def ::j int?) ;; j of cell
 (s/def ::cellid string?) ;; cell id, equal to the i and j
-(s/def ::class string?) ;; not sure if necessary, but the class of the shape
-(s/def ::d string?) ;; the shape string
-(s/def ::cell (s/keys :req-un [::i ::j ::cellid ::d]))
+;;(s/def ::class string?) ;; not sure if necessary, but the class of the shape
+(s/def ::data string?) ;; the shape data, from topojson feature call
+(s/def ::cell (s/keys :req-un [::cellid ::data])) ;; ::data
 (s/def ::grid (s/and                               ;; should use the :kind kw to s/map-of (not supported yet)
                  (s/map-of ::cellid ::cell)             ;; in this map, each todo is keyed by its :text
                  #(instance? PersistentTreeMap %)   ;; is a sorted-map (not just a map)
                  ))
-(s/def ::db (s/keys :req-un [::grid]))
+(s/def ::active string?)
+(s/def ::land string?) ;; not sure here what to use.  a js structure
+
+(s/def ::db (s/keys :req-un [::grid ::active ::land ]))
 
 ;; -- Default app-db Value  ---------------------------------------------------
 ;;
 ;; When the application first starts, this will be the value put in app-db
 
-(def initial-state {:grid ;; the map to draw
+  (def initial-state {:grid (sorted-map);; the map to draw
+                      :active "1-2" ;; a fake active cell id
+                      :land nil ;; the land,
+                      :path nil ;; curse your inevitable betrayal
                     })

@@ -14,13 +14,32 @@
 ;; (def alphabet (rest (str/split "abcdefghijklmnopqrstuvwxyz" #"")))
 
 
+(def margin [20 20 20 20]) ;; like css, start at the top
+(def width 500)
+(def height 500)
 
-(defn ^:export main []
-  (let []
+
+(defn ^:export main [json-file]
   (dispatch-sync [:initialize-db])
-  (reagent/render-component [calvad.map.views/app]
+  (.json js/d3 json-file
+         (fn [error json]
+           (if (not (nil? error))
+             (println "error in json" error)
+             (dispatch [:process-topojson json {:margin margin
+                                                :width width
+                                                :height height}]))))
+  (reagent/render-component [calvad.map.views/app width height]
                             (. js/document (getElementById "app")))
-           ))
+  )
+
+
+
+;; then call grid with the grid data
+;; but better, use the grid data to populate the db
+;;            [calvad.map.map/d3-inner-map
+;;             gridtopo
+;;             active
+;;               ]]
 
 
 (defn on-js-reload []
