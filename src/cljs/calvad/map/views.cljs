@@ -169,10 +169,17 @@
           ))
       })))
 
-(defn clickr [param idx value]
-  [:input {:type "button"
-           ;;:on-click #(dispatch [:shuffle])}
-           }])
+(defn clickr [loading]
+  (let [params (if loading
+                 {:type "button"
+                  :disabled true
+                  :on-click #(dispatch [:get-hpmsdata "hpms2009.json"])
+                  }
+                 ;; else, not loading, so enable the clicker
+                 {:type "button"
+                  :on-click #(dispatch [:get-hpmsdata "hpms2009.json"])
+                  })]
+    [:button params "get grid data"]))
 
 
 ;; ;; letters using d3 controllers

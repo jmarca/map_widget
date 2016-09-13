@@ -10,6 +10,8 @@
     [cljsjs.d3]
     ))
 
+(enable-console-print!)
+
 ;; -- Interceptors --------------------------------------------------------------
 ;;
 
@@ -187,3 +189,85 @@
                                   land-features ))})
 
       )))
+
+(reg-event-db
+ :process-hpmsjson
+ ;; [debug]
+ (fn
+   [db [_ json]]   ;; destructure the response from the event vector
+   (println "handling hpmsjson")
+
+   (let [griddb (:grid db)
+         incoming (into
+                   (sorted-map)
+                   (map (fn [record]
+                          (let [id (str (.-cell_i  record)
+                                        "_"
+                                        (.-cell_j record )) ]
+                            [id record])) ;; if use merge-with, need :hpms here
+                        json))
+         ;; Need to handle the case in which there is an old entry, but no new one.
+         ;; One issue I'm not handling right now is if there is a grid
+         ;; entry in old but not in new, I want old to go away.
+         current (set
+                  (keys
+                   (filter
+                    (fn [[idx d]] (nil? (find d :hpms)))
+                    griddb)))
+         newk (set (keys incoming))
+         exit (set/difference current newk) ;; current less newk is exit set
+         ;; make sure "exit" set is switched off
+
+         ;; but trying to do the merge in just one pass over the data
+         ;; because the sets are big and expensive
+         ;; last one wins, so if there is old HPMS data, the incoming one will win
+         ;; updates (merge-with merge (:grid db) incoming)
+
+         updates (into
+                  (sorted-map)
+                  (map (fn [idx]
+                         (let [oldr (get griddb idx)
+                               newr (get incoming idx)]
+
+                           ;;(println oldr)
+                           ;;(println newr)
+
+                           [idx (merge oldr {:hpms newr})]
+                           ))
+                       newk ;; iterate over incoming keys
+                         ))
+         exits (into
+                (sorted-map)
+                (map (fn [idx]
+                       [idx (dissoc (get griddb idx) :hpms) ])
+                       exit ;; iterate over exiting keys
+                       ))
+
+         updatedgrid (merge griddb exits updates)
+
+         ]
+     ;;(println (first updates))
+     ;;(println (first exits))
+     ;;(println (first updatedgrid))
+     ;;(println (get updatedgrid (first newk)))
+     (merge db {:grid updatedgrid})
+     ;;db
+     )))
+
+(reg-event-db
+ :not-loading
+ (fn
+   [db _]
+   (dissoc db :loading?)))
+
+(reg-event-fx
+ :get-hpmsdata
+ (fn
+   [{db :db} [_ json-file]]
+   (.json js/d3 json-file
+          (fn [e j]
+            (if (not (nil? e))
+              (println "json fetch error " e)
+              (dispatch [:process-hpmsjson j]))
+            (dispatch [:not-loading])))
+   {:db  (assoc db :loading? true)}))
