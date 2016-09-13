@@ -61,27 +61,36 @@
      )))
 
 
+
 ;; okay, first real issue with this.  How to handle active.  Is it a
 ;; db thing, with one entry per grid cell, or is it a single value,
 ;; and all grid cells subscribe to it.  If the latter (which is what
 ;; I'm going to try first) then will clicking on a single cell cause
 ;; all grid cells to re-render and/or go through the update cycle?
 
+
+
 (defn grid-cell [data active]
   (let [
-        path      (subscribe [:path])
+        path  (subscribe [:path])
         ]
 
     (reagent/create-class
      {:reagent-render (fn [data active]
                         ;;(println "rendering " data ", active " active)
-                        (let [active (if (= active (:cellid data)) "active" "inactive")]
-                          [:path {:class (str "grid " active)}]
+                        (let [active (if (= active (:cellid data)) "active" "inactive")
+                              path @path
+                              geodata (:data data)
+                              gridpath (path (clj->js geodata))
+                              props {:class (str "grid " active)
+                                     :d gridpath}
+                              ]
+                          [:path props]
                           )
                       )
-    :display-name  "one-grid-cell"  ;; for more helpful warnings & errors
-    :component-did-mount  (partial cell-render @path)
-    :component-did-update (partial cell-render @path)
+      :display-name  "one-grid-cell"  ;; for more helpful warnings & errors
+      ;;:component-did-mount  (partial cell-render @path)
+      ;;:component-did-update (partial cell-render @path)
     })))
 
 
