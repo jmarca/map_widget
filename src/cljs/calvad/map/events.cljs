@@ -69,7 +69,6 @@
 ;;       (assoc-in grid [id :data] value))))
 
 
-
 (reg-event-db
  :update-path
  (fn
@@ -149,17 +148,6 @@
                             (clj->js {:type "GeometryCollection"
                                       :geometries allgeoms})
                             ))
-          land-features (map  (fn [d]
-                                (let [p (get d "properties")
-                                      id (str/replace
-                                          (str (get p "i_cell") "_" (get p "j_cell"))
-                                          #"\.0*"
-                                          "")
-                                      ]
-                                  {:cellid id
-                                   :data (assoc d :id id)}))
-                              (js->clj (.-features land))
-                              )
           geoPath (js/d3.geoPath.)
           gtm (js/d3.geoTransverseMercator.)
           margin (:margin dims)
@@ -173,6 +161,18 @@
                                                        (- height (nth margin 2))]
                                                       ]) land))
 
+          land-features (map  (fn [d]
+                                (let [p (.-properties d)
+                                      id (str/replace
+                                          (str (.-i_cell p) "_" (.-j_cell p))
+                                          #"\.0*"
+                                          "")
+                                      ]
+                                  {:cellid id
+                                   :svgpath (path d)
+                                   :data d}))
+                               (.-features land)
+                              )
           ]
       ;;
 

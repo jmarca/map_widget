@@ -69,19 +69,20 @@
 
 (defn grid-cell [data active]
   (let [
-        path      (subscribe [:path])
+        ;;path      (subscribe [:path])
         ]
 
     (reagent/create-class
      {:reagent-render (fn [data active]
                         ;;(println "rendering " data ", active " active)
-                        (let [active (if (= active (:cellid data)) "active" "inactive")]
-                          [:path {:class (str "grid " active)}]
+                        (let [active (if (= active (:cellid data)) "active" "inactive")
+                              d (:svgpath data)]
+                          [:path {:class (str "grid " active) :d d}]
                           )
                       )
     :display-name  "one-grid-cell"  ;; for more helpful warnings & errors
-    :component-did-mount  (partial cell-render @path)
-    :component-did-update (partial cell-render @path)
+      ;;:component-did-mount  (partial cell-render @path)
+      ;;:component-did-update (partial cell-render @path)
     })))
 
 
