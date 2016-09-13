@@ -137,7 +137,7 @@
 
 (reg-event-db
  :process-topojson
- [debug]
+;; [debug]
   (fn
     [db [_ response dims]]   ;; destructure the response from the event vector
     (println "handling topojson")
