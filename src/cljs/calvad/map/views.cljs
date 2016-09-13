@@ -74,10 +74,26 @@
 
     (reagent/create-class
      {:reagent-render (fn [data active]
-                        ;;(println "rendering " data ", active " active)
+;;                        (println "rendering " data ", active " active)
                         (let [active (if (= active (:cellid data)) "active" "inactive")
-                              d (:svgpath data)]
-                          [:path {:class (str "grid " active) :d d}]
+                              d (:svgpath data)
+                              class (str "grid " active)
+                              [_ hpms] (find data :hpms)
+                              c (if (nil? hpms)
+                                  {:class class :d d}
+                                  ;; else, have vmt, so color it so
+                                  (do
+                                    (let [
+                                          vmt (.-sum_vmt hpms)
+                                          color (colorit vmt)
+                                          ]
+                                      {
+                                       :class class
+                                       :d d
+                                       :style {:fill color}
+                                       })))
+                              ]
+                          [:path c ]
                           )
                       )
     :display-name  "one-grid-cell"  ;; for more helpful warnings & errors

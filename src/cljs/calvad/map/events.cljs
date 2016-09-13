@@ -249,7 +249,8 @@
      ;;(println (first updates))
      ;;(println (first exits))
      ;;(println (first updatedgrid))
-     ;;(println (get updatedgrid (first newk)))
+     ;; (println "current:" (get griddb (first newk)))
+     ;; (println "revised:" (get updatedgrid (first newk)))
      (merge db {:grid updatedgrid})
      ;;db
      )))
