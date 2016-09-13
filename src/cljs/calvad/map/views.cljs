@@ -150,7 +150,8 @@
         [data land]
         (let [
               ;; need to grab the geometry info from the db
-
+              svg (.. js/d3
+                      (select ".map svg"))
               g (.. js/d3
                     (select ".map svg g"))
 
@@ -162,7 +163,7 @@
               ]
           ;; everything is now handled in sub component grid-cell
           ;; except for the initial zoom call to scale properly
-          (.. g
+          (.. svg
               (call zoom))
           ))
       })))
