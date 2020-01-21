@@ -1,5 +1,14 @@
 # Map widget
 
+## Refactoring Sep 2016
+
+component died, and this widget never took off anyway, so time to
+refactor and recode.  At the moment, I'm aiming for clojurescript, and
+standard leaflet mapping, I think.
+
+
+
+# older write up
 Sifting though my old code, I do not see a clear set of widgets for
 building map-based web sites, even though I do have running sites.
 This is an attempt to start building web components using component.js
